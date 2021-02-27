@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A webpage to controle a LED rocket">
+    <title>Night Knight Control - Brightness</title>
+    <link rel="stylesheet" href="{{ static_url("style.css") }}" type="text/css">
+</head>
+<body>
+    <div class="container">
+        {% include menu.html %}
+        <div id="content" class="center">
+            <div id="header">
+                <img class="header-img" src="{{ static_url("NK.png") }}" alt="Night Knight">
+            </div>
+            <div>
+                <div>
+                    Pattern :
+                    <select name="Pattern : " id="pat">
+                        <option value="tst">Test value</option>
+                    </select>
+                </div>
+
+                <div>
+                    Color : <input type="color" id="colorpicker" onchange="clickColor(0, -1, -1, 5)" value="#ff0000">
+                </div>
+                <div>
+                    Brightness : 
+                    <input type="range" min="0" max="31" value="15" class="slider" id="brightness">
+                </div>
+                <div>
+                    Value : 
+                        <input type="number">
+                </div>
+                <div>
+                    Color List :
+                    <select name="clist" id="clist">
+                        <option value="tst">Test pattern</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>

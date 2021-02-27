@@ -1,0 +1,69 @@
+body {
+    color: #C0C0C0;
+    background-color: #080808;
+
+}
+
+#content {
+    /*max-width : 5in;*/
+    background-color: #383838;
+}
+
+#header img {
+    max-width : 100%;
+    height : 100%;
+    display: block;
+    margin: auto;
+}
+
+.left, .right, .center {
+    float: left;
+    width: 33%;
+    color: white;
+    padding: 10px;
+    height: 500px;
+    text-align: center;
+}
+
+.column {
+    float: left;
+}
+
+.cmd {
+    float : left;
+    clear : both;
+}
+
+.menu {
+    width : 100%;
+    float : right;
+    clear : left;
+}
+
+.left, .right {
+    width: 25%;
+    max-width : 2in;
+    background-color : #181818;
+}
+
+.middle {
+    width: 50%;
+    max-width : 6in;
+}
+
+.container:after {
+    clear: both;
+}
+
+/*
+#actions {
+    width: 150px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 1000; 
+    background: #191818;
+    overflow-y: auto;
+}
+*/

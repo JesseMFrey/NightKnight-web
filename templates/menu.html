@@ -1,0 +1,13 @@
+<div id="actions" class="left">
+    {% for p in pages %}
+        <div class="menu">
+        {% if p!=page %}
+            <a href="{{p}}.html" class="cmd">
+        {% end %}
+            {{p}}
+        {% if p!=page %}
+            </a>
+        {% end %}
+        </div>
+    {% end %}
+</div>
