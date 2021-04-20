@@ -14,58 +14,61 @@
             <div id="header">
                 <img class="header-img" src="{{ static_url("NK.png") }}" alt="Night Knight">
             </div>
-            <div>
-                Nosecone :
-                <div>
-                    Pattern :
-                    <select name="Pattern : " id="pat">
-                        <option value="tst">Test value</option>
-                    </select>
-                </div>
-                <div>
-                    Value 1 : 
-                        <input type="number">
-                </div>
-                <div>
-                    Value 2 : 
-                        <input type="number">
-                </div>
-                <div>
-                    Time 1 : 
-                        <input type="number">
-                </div>
-                <div>
-                    Time 2 : 
-                        <input type="number">
-                </div>
+            <form action="/nosecone.html" method="POST">
+                Nosecone : <br><br>
+                <label for='pat'>Pattern :</label>
+                <select name="mode" id="mode">
+                    {% for p in nc_patterns %}
+                        <option value="{{p}}"
+                                {% if p==nc['mode'] %}
+                                selected=True
+                                {% end %}
+                                >{{p}}</option>
+                    {% end %}
+                </select><br><br>
 
-            </div>
-            <div>
-                Parachute :
-                <div>
-                    Pattern :
-                    <select name="Pattern : " id="pat">
-                        <option value="tst">Test value</option>
-                    </select>
-                </div>
-                <div>
-                    Value 1 : 
-                        <input type="number">
-                </div>
-                <div>
-                    Value 2 : 
-                        <input type="number">
-                </div>
-                <div>
-                    Time 1 : 
-                        <input type="number">
-                </div>
-                <div>
-                    Time 2 : 
-                        <input type="number">
-                </div>
+                <label for="val1">Value 1 :</label>
+                <input name="val1" type="number" value="{{nc['val1']}}"><br><br>
 
-            </div>
+                <label for="val2">Value 2 :</label>
+                <input name="val2" type="number" value="{{nc['val2']}}"><br><br>
+                
+                <label for="t1">Time 1 :</label>
+                <input name="t1" type="number" value="{{nc['t1']}}"><br><br>
+
+                <label for="t2">Time 2 :</label>
+                <input name="t2" type="number" value="{{nc['t2']}}"><br><br>
+
+                <input type="submit" value="Update Nosecone"><br><br>
+            </form>
+            <form action="/chute" method="POST">
+                Parachute :<br><br>
+                
+                <label for="pat">Pattern :</label>
+                <select name="mode" id="mode">
+                    {% for p in chute_patterns %}
+                        <option value="{{p}}"
+                                {% if p==chute['mode'] %}
+                                selected=True
+                                {% end %}
+                                >{{p}}</option>
+                    {% end %}
+                </select><br><br>
+                    
+                <label for="val1">Value 1 :</label>
+                <input name="val1" type="number" value="{{chute['val1']}}"><br><br>
+
+                <label for="val2">Value 2 :</label>
+                <input name="val2" type="number" value="{{chute['val2']}}"><br><br>
+                
+                <label for="t1">Time 1 :</label>
+                <input name="t1" type="number" value="{{chute['t1']}}"><br><br>
+
+                <label for="t2">Time 2 :</label>
+                <input name="t2" type="number" value="{{chute['t2']}}"><br><br>
+
+                <input type="submit" value="Update Chute"><br><br>
+            </form>
         </div>
     </div>
 </body>

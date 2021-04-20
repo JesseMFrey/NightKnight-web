@@ -15,22 +15,30 @@
                 <img class="header-img" src="{{ static_url("NK.png") }}" alt="Night Knight">
             </div>
             <div>
-                <div>
-                    color : {{color}}
-                </div>
-                <div>
-                    pattern : {{pat}}
-                </div>
-                <div>
-                    value : {{val}}
-                </div>
-                <div>
-                    list  : {{clist}}
-                </div>
-                <div>
-                    flight pattern : {{fpat}}
-                </div>
-                <button type="button">Save</button> 
+                <h1>RAM Settings</h1>
+                color : {{ram_set['color'][1]}} <br><br>
+                brightness : {{ram_set['color'][0]}} <br><br>
+                pattern : {{ram_set['pattern']}} <br><br>
+                value : {{ram_set['value']}} <br><br>
+                list : {{ram_set['list']}} <br><br>
+                flight pattern : {{ram_set['flight pattern']}} <br><br>
+            </div>
+            <div>
+                <h1>Flash Settings</h1>
+                {% if not flash_set['flash valid'] %}
+                    <!-- make this red or bold or something -->
+                    Flash settings are invalid!<br><br>
+                {% end %}
+                color : {{flash_set['color'][1]}} <br><br>
+                brightness : {{flash_set['color'][0]}} <br><br>
+                pattern : {{flash_set['pattern']}} <br><br>
+                value : {{flash_set['value']}} <br><br>
+                list : {{flash_set['list']}} <br><br>
+                flight pattern : {{flash_set['flight pattern']}} <br><br>
+            </div>
+            <div>
+                <button type="button">Save</button> <br><br>
+                <button type="button">Clear</button> 
             </div>
         </div>
     </div>

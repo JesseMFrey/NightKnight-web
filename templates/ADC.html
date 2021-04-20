@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="A webpage to controle a LED rocket">
     <title>Night Knight Control - Brightness</title>
+    <meta http-equiv="refresh" content="5" >
     <link rel="stylesheet" href="{{ static_url("style.css") }}" type="text/css">
 </head>
 <body>
@@ -15,7 +16,9 @@
                 <img class="header-img" src="{{ static_url("NK.png") }}" alt="Night Knight">
             </div>
             <div>
-                ADC stuff goes here
+                {% for k,v in adc_dat.items() %}
+                    {{k}} = {{str(v[0])+' '+ v[1]}} <br><br>
+                {% end %}
             </div>
         </div>
     </div>

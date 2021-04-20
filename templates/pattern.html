@@ -15,30 +15,42 @@
                 <img class="header-img" src="{{ static_url("NK.png") }}" alt="Night Knight">
             </div>
             <div>
-                <div>
-                    Pattern :
-                    <select name="Pattern : " id="pat">
-                        <option value="tst">Test value</option>
-                    </select>
-                </div>
+                <form action="/pattern.html" method="POST">
+                    <label for="pattern">Pattern :</label>
+                    <select name="pattern" id="pat">
+                        {% for p in patterns %}
+                        <option value="{{p}}"
+                                {% if p==pat %}
+                                selected=True
+                                {% end %}
+                                >{{p}}</option>
+                        {% end %}
+                    </select><br>
 
-                <div>
-                    Color : <input type="color" id="colorpicker" onchange="clickColor(0, -1, -1, 5)" value="#ff0000">
-                </div>
-                <div>
-                    Brightness : 
-                    <input type="range" min="0" max="31" value="15" class="slider" id="brightness">
-                </div>
-                <div>
-                    Value : 
-                        <input type="number">
-                </div>
-                <div>
-                    Color List :
+                    <label for="setNC">Use nosecone for pattern </label>
+                    <input name="setNC" type="checkbox" value="NC"><br><br>
+
+                    <label for="color">Color : </label>
+                    <input name="color" type="color" id="colorpicker" onchange="clickColor(0, -1, -1, 5)" value="#{{bytearray(color).hex()}}"><br><br>
+
+                    <label for="brt">Brightness :</label>
+                    <input name="brt" type="range" min="0" max="31" value="{{brightness}}" class="slider" id="brightness"><br><br>
+
+                    <label for="val">Value :</label>
+                    <input type="number" name="val" value="{{value}}"><br><br>
+
+                    <label for="clist">Color List :</label>
                     <select name="clist" id="clist">
-                        <option value="tst">Test pattern</option>
-                    </select>
-                </div>
+                        {% for l in clists %}
+                        <option value="{{l}}"
+                                {% if l==currentlst %}
+                                selected=True
+                                {% end %}
+                                >{{l}}</option>
+                        {% end %}
+                    </select><br><br>
+                    <input type="submit" value="Submit">
+                </form>
             </div>
         </div>
     </div>

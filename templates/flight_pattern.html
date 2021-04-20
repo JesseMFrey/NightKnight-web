@@ -15,15 +15,23 @@
                 <img class="header-img" src="{{ static_url("NK.png") }}" alt="Night Knight">
             </div>
             <div>
-                <div>
-                    Flight Pattern :
-                    <select name="Pattern : " id="pat">
-                        {% for pat in patterns %}
-                            <option value="{{pat}}">{{pat}}</option>
+                <form action="/flight_pattern.html" method="POST">
+                    <label for="pattern">Flight Pattern :</label>
+                    <select name="pattern" id="pat">
+                        {% for p in patterns %}
+                            <option value="{{p}}"
+                                    {% if p==pat %}
+                                    selected=True
+                                    {% end %}
+                                    >{{p}}</option>
                         {% end %}
-                    </select>
-                </div>
-                <button type="button">Simulate</button> 
+                    </select><br><br>
+                    
+                    <input type="submit" value="Set Pattern"> <br><br>
+                </form>
+                <form action="/simulate" method="POST">
+                    <input type="submit" value="Simulate"> <br><br>
+                </form>
             </div>
         </div>
     </div>

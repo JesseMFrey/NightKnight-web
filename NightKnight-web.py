@@ -1,67 +1,183 @@
 #!/usr/bin/env python
 
+import os.path
 import asyncio
 import tornado.escape
 import tornado.ioloop
 import tornado.locks
 import tornado.web
-import os.path
+import webcolors
+
+from NightKnight_control import NightKnight
 
 from tornado.options import define, options, parse_command_line
 
 define("port", default=8888, help="run on the given port", type=int)
 define("debug", default=True, help="run in debug mode")
+define("serial", default='/dev/ttyUSB0', help="Serial port to use")
 
 NK_pages=('home','pattern','ADC','nosecone','resets','settings','flight_pattern')
 
 class MainHandler(tornado.web.RequestHandler):
+    def initialize(self, rocket):
+        self.rocket=rocket
     def get(self):
         self.render("home.html", pages=NK_pages,page='home')
 
 class PatternHandler(tornado.web.RequestHandler):
+    def initialize(self, rocket):
+        self.rocket=rocket
     def get(self):
         #TODO : get pattern stuff here
-        self.render('pattern.html',pages=NK_pages,page='pattern')
+        patterns,current_pat=self.rocket.get_patterns()
+        val=self.rocket.get_value()
+        brt,color=self.rocket.get_color()
+        clists,currentlst=self.rocket.get_clists()
+        self.render('pattern.html',pages=NK_pages,page='patterns',
+                        patterns=patterns,
+                        pat=current_pat,
+                        value=val,
+                        brightness=brt,
+                        color=color,
+                        clists=clists,
+                        currentlst=currentlst,
+                    )
+
+    def post(self):
+        #self.set_header("Content-Type", "text/plain")
+        #get color
+        color=webcolors.hex_to_rgb(self.get_body_argument("color"))
+        #get brightness
+        brt=self.get_body_argument("brt")
+        #set brigtness and color
+        self.rocket.set_color(brt,color)
+        #set value
+        self.rocket.set_value(int(self.get_body_argument("val")))
+        #set color list
+        self.rocket.set_clist(self.get_body_argument("clist"))
+        #set pattern
+        self.rocket.set_pattern(self.get_body_argument("pattern"))
+
+        self.redirect('pattern.html',True)
+
 
 class ADCHandler(tornado.web.RequestHandler):
+    def initialize(self, rocket):
+        self.rocket=rocket
     def get(self):
         #TODO: get ADC readings
-        self.render('ADC.html',pages=NK_pages,page='ADC')
+        adc_dat=self.rocket.read_ADC()
+        self.render('ADC.html',pages=NK_pages,page='ADC',
+                        adc_dat=adc_dat,
+                   )
 
 class NoseconeHandler(tornado.web.RequestHandler):
+    def initialize(self, rocket):
+        self.rocket=rocket
     def get(self):
         #TODO: get nosecone and chute values
-        self.render('nosecone.html',pages=NK_pages,page='nosecone')
+        nc_info=self.rocket.get_NC()
+        chute_info=self.rocket.get_chute()
+        self.render('nosecone.html',pages=NK_pages,page='nosecone',
+                        chute=chute_info,
+                        nc=nc_info,
+                        chute_patterns=self.rocket.chute_modes,
+                        nc_patterns=self.rocket.NC_modes,
+                    )
+
+    def post(self):
+        #get values
+        mode=self.get_body_argument("mode")
+        val1=int(self.get_body_argument("val1"))
+        val2=int(self.get_body_argument("val2"))
+        t1  =int(self.get_body_argument("t1"))
+        t2  =int(self.get_body_argument("t2"))
+        #set chute
+        self.rocket.set_NC(mode,val1,val2,t1,t2)
+
+        self.redirect('nosecone.html')
+
+class ChuteHandler(tornado.web.RequestHandler):
+    def initialize(self, rocket):
+        self.rocket=rocket
+    def get(self):
+        self.redirect('nosecone.html')
+
+    def post(self):
+        #get values
+        mode=self.get_body_argument("mode")
+        val1=int(self.get_body_argument("val1"))
+        val2=int(self.get_body_argument("val2"))
+        t1  =int(self.get_body_argument("t1"))
+        t2  =int(self.get_body_argument("t2"))
+        #set chute
+        self.rocket.set_chute(mode,val1,val2,t1,t2)
+
+        self.redirect('nosecone.html')
 
 class ResetsHandler(tornado.web.RequestHandler):
+    def initialize(self, rocket):
+        self.rocket=rocket
     def get(self):
         #TODO: get reset info
         self.render('resets.html',pages=NK_pages,page='resets',
                     rst_reason='Everything was wrong!',rst_num=1000)
 
 class SettingsHandler(tornado.web.RequestHandler):
+    def initialize(self, rocket):
+        self.rocket=rocket
     def get(self):
-        #TODO: get settings info
+        flash,ram=self.rocket.get_settings()
         self.render('settings.html',pages=NK_pages,page='settings',
-                    color='#FF0000',pat='pat',val=20,clist='list',fpat='pat')
+                        flash_set=flash,
+                        ram_set=ram,
+                   )
 
 class FlightPatternHandler(tornado.web.RequestHandler):
+    def initialize(self, rocket):
+        self.rocket=rocket
     def get(self):
         #TODO: get flight pattern info
+        patterns,current=self.rocket.get_flight_patterns()
         self.render('flight_pattern.html',pages=NK_pages,page='flight_pattern',
-                    patterns=('pattern1','pattern2'))
+                        patterns=patterns,
+                        pat=current,
+                    )
+
+    def post(self):
+        #set pattern
+        self.rocket.set_flight_pattern(self.get_body_argument("pattern"))
+
+        self.redirect('flight_pattern.html')
+
+class SimulationHandler(tornado.web.RequestHandler):
+    def initialize(self, rocket):
+        self.rocket=rocket
+    def get(self):
+        self.redirect('flight_pattern.html')
+
+    def post(self):
+        #start simulation
+        self.rocket.simulate()
+
+        self.redirect('flight_pattern.html')
+
 
 def main():
     parse_command_line()
 
-    handlers=[ (r"/", MainHandler),
-               (r"/home\.html", MainHandler),
-               (r"/pattern\.html", PatternHandler),
-               (r"/ADC\.html", ADCHandler),
-               (r"/nosecone\.html", NoseconeHandler),
-               (r"/resets\.html", ResetsHandler),
-               (r"/settings\.html", SettingsHandler),
-               (r"/flight_pattern\.html", FlightPatternHandler),
+    rocket=NightKnight(options.serial)
+
+    handlers=[ (r"/", MainHandler,{'rocket':rocket}),
+               (r"/home\.html", MainHandler,{'rocket':rocket}),
+               (r"/pattern\.html", PatternHandler,{'rocket':rocket}),
+               (r"/ADC\.html", ADCHandler,{'rocket':rocket}),
+               (r"/nosecone\.html", NoseconeHandler,{'rocket':rocket}),
+               (r"/chute", ChuteHandler,{'rocket':rocket}),
+               (r"/simulate", SimulationHandler,{'rocket':rocket}),
+               (r"/resets\.html", ResetsHandler,{'rocket':rocket}),
+               (r"/settings\.html", SettingsHandler,{'rocket':rocket}),
+               (r"/flight_pattern\.html", FlightPatternHandler,{'rocket':rocket}),
                ]
 
     print(handlers)
