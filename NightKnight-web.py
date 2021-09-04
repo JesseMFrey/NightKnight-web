@@ -14,6 +14,7 @@ from tornado.options import define, options, parse_command_line
 
 define("port", default=8888, help="run on the given port", type=int)
 define("debug", default=True, help="run in debug mode")
+define("serial_debug", default=False, help="Debug serial communications")
 define("serial", default='/dev/ttyUSB0', help="Serial port to use")
 
 NK_pages=('home','pattern','ADC','nosecone','resets','settings','flight_pattern')
@@ -166,7 +167,7 @@ class SimulationHandler(tornado.web.RequestHandler):
 def main():
     parse_command_line()
 
-    rocket=NightKnight(options.serial)
+    rocket=NightKnight(options.serial,debug=options.serial_debug)
 
     handlers=[ (r"/", MainHandler,{'rocket':rocket}),
                (r"/home\.html", MainHandler,{'rocket':rocket}),
