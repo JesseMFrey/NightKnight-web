@@ -281,17 +281,19 @@ class NightKnight:
         settings={'flash valid':True,'type':'RAM'}
         #get line
         line=self._textin.readline()
-        #check for invalid flash settings
-        if('Flash settings are invalid' in line):
-            settings['flash valid']=False
-            #get another line
-            line=self._textin.readline()
-        #check for invalid flash settings
+        #check for flash settings
         if('settings from flash' in line):
             settings['type']='flash'
             #get another line
             line=self._textin.readline()
+        #check for invalid flash settings
+        if line.startswith('Flash settings are invalid'):
+            settings['flash valid']=False
+            #get another line
+            line=self._textin.readline()
         while(line and not line.startswith('>')):
+            #TESTING : print things
+            print(line)
             #split into name and value
             name,value=line.split(':')
             #strip spaces from name
@@ -320,6 +322,13 @@ class NightKnight:
 
     def write_settings(self):
         self._command('settings save')
+        #get line
+        line=self._textin.readline()
+        while(line and not line.startswith('>')):
+            line=self._textin.readline()
+    
+    def clear_settings(self):
+        self._command('settings clear')
         #get line
         line=self._textin.readline()
         while(line and not line.startswith('>')):

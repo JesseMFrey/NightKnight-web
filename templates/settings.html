@@ -35,8 +35,10 @@
                 </div>
             {% end %}
             <div>
-                <button type="button">Save</button> <br><br>
-                <button type="button">Clear</button> 
+                <form action="/settings.html" method="POST">
+                    <input type="submit" name=action value='save'> <br><br>
+                    <input type="submit" name=action value='clear'> 
+                </form>
             </div>
         </div>
     </div>

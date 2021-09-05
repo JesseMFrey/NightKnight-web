@@ -135,6 +135,18 @@ class SettingsHandler(tornado.web.RequestHandler):
                         flash_set=flash,
                         ram_set=ram,
                    )
+    def post(self):
+        #get action
+        action = self.get_body_argument("action")
+
+        if action == 'save':
+            self.rocket.write_settings()
+        elif action == 'clear':
+            self.rocket.clear_settings()
+        else:
+            raise ValueError(f'Unknown action \'{action}\'')
+
+        self.redirect('settings.html')
 
 class FlightPatternHandler(tornado.web.RequestHandler):
     def initialize(self, rocket):
