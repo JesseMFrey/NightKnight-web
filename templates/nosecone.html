@@ -16,7 +16,7 @@
             </div>
             <form action="/nosecone.html" method="POST">
                 Nosecone : <br><br>
-                <label for='pat'>Pattern :</label>
+                <label for="mode">Pattern :</label>
                 <select name="mode" id="mode">
                     {% for p in nc_patterns %}
                         <option value="{{p}}"
@@ -44,7 +44,7 @@
             <form action="/chute" method="POST">
                 Parachute :<br><br>
                 
-                <label for="pat">Pattern :</label>
+                <label for="mode">Pattern :</label>
                 <select name="mode" id="mode">
                     {% for p in chute_patterns %}
                         <option value="{{p}}"

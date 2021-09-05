@@ -302,6 +302,9 @@ class NightKnight:
                 value=(vals[0],tuple(vals[1:]))
             elif(name=='value'):
                 value=int(value)
+            else:
+                #value is string, strip space chars
+                value=value.strip()
             #add to dict
             settings[name]=value
             #get the next line
