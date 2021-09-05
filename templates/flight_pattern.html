@@ -29,10 +29,20 @@
                     
                     <input type="submit" value="Set Pattern"> <br><br>
                 </form>
+                <form action="/altitude" method="POST">
+                    <label for="altitude">Expected Altitude :</label>
+                    <input name="altitude" type="number" value="{{altitude}}">
+                    <select name="units">
+                        <option value="m" selected=True>m</option>
+                        <option value="ft">ft</option>
+                    </select></br></br>
+                    <input type="submit" value="Set Altitude"> <br><br>
+                </form>
                 <form action="/simulate" method="POST">
                     <input type="submit" value="Simulate"> <br><br>
                 </form>
             </div>
+
         </div>
     </div>
 </body>

@@ -138,11 +138,15 @@ class FlightPatternHandler(tornado.web.RequestHandler):
     def initialize(self, rocket):
         self.rocket=rocket
     def get(self):
-        #TODO: get flight pattern info
+        #get flight pattern info
         patterns,current=self.rocket.get_flight_patterns()
+        #get expected altitude
+        altitude = self.rocket.get_altitude()
+
         self.render('flight_pattern.html',pages=NK_pages,page='flight_pattern',
                         patterns=patterns,
                         pat=current,
+                        altitude = altitude,
                     )
 
     def post(self):
@@ -163,6 +167,23 @@ class SimulationHandler(tornado.web.RequestHandler):
 
         self.redirect('flight_pattern.html')
 
+class AltitudeHandler(tornado.web.RequestHandler):
+    def initialize(self, rocket):
+        self.rocket = rocket
+        
+    def get(self):
+        self.redirect('flight_pattern.html')
+
+    def post(self):
+        #get altitude from post
+        altitude = self.get_body_argument("altitude")
+        #get units from post
+        units = self.get_body_argument("units")
+        #set altitude
+        self.rocket.set_altitude(float(altitude),units = units)
+
+        self.redirect('flight_pattern.html')
+
 
 def main():
     parse_command_line()
@@ -176,6 +197,7 @@ def main():
                (r"/nosecone\.html", NoseconeHandler,{'rocket':rocket}),
                (r"/chute", ChuteHandler,{'rocket':rocket}),
                (r"/simulate", SimulationHandler,{'rocket':rocket}),
+               (r"/altitude", AltitudeHandler,{'rocket':rocket}),
                (r"/resets\.html", ResetsHandler,{'rocket':rocket}),
                (r"/settings\.html", SettingsHandler,{'rocket':rocket}),
                (r"/flight_pattern\.html", FlightPatternHandler,{'rocket':rocket}),

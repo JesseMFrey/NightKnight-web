@@ -321,6 +321,33 @@ class NightKnight:
         line=self._textin.readline()
         while(line and not line.startswith('>')):
             line=self._textin.readline()
+    
+    def get_altitude(self):
+        self._command('alt')
+        #get line
+        line = self.get_line()
+        #split name from value
+        name, value = line.split(':')
+        #strip spaces
+        value = value.strip()
+        #split out units
+        value, units = value.split(' ')
+        #return value
+        return int(value)
+
+    def set_altitude(self, val, units='meters'):
+        #check units
+        if units in ('meters', 'm'):
+            #value already in meters
+            pass
+        elif units in ('feet', 'ft'):
+            #convert ft to m
+            val *= 0.3048
+        else:
+            raise ValueError(f'Unknown units \'{units}\'')
+        #set value
+        self._command(f'alt {int(val)}')
+
 
     def get_line(self):
         line=self._textin.readline()
