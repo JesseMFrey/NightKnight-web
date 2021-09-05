@@ -1,5 +1,5 @@
-import serial
 import io
+import serial
 import re
 
 #custom exception for commands
