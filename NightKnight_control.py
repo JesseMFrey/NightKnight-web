@@ -67,12 +67,14 @@ class NightKnight:
         if(not line.startswith('>')):
             raise CommandError(f'Unable to parse response \'{line}\'')
 
+    @_cached
     def get_flight_patterns(self):
         self._command('fpat')
         #get line before loop
         line=self.get_line()
         #empty array
         patterns=[]
+        current = None
         while(not line.startswith('>')):
             #strip spaces
             pat=line.strip()
