@@ -29,12 +29,16 @@ class PatternHandler(tornado.web.RequestHandler):
     def initialize(self, rocket):
         self.rocket=rocket
     def get(self):
-        #TODO : get pattern stuff here
-        patterns,current_pat=self.rocket.get_patterns()
-        val=self.rocket.get_value()
-        brt,color=self.rocket.get_color()
-        clists,currentlst=self.rocket.get_clists()
-        nightlight = self.rocket.get_nightlight()
+        
+        patterns = self.rocket.get('pattern_list')
+        current_pat = self.rocket.get('pattern')
+        val = self.rocket.get('value')
+        color = self.rocket.get('color')
+        brt = self.rocket.get('brightness')
+        clists = self.rocket.get('clist_list')
+        currentlst=self.rocket.get('color_list')
+        nightlight = self.rocket.get('nightlight')
+
         self.render('pattern.html',pages=NK_pages,page='patterns',
                         patterns=patterns,
                         pat=current_pat,
@@ -53,13 +57,14 @@ class PatternHandler(tornado.web.RequestHandler):
         #get brightness
         brt=self.get_body_argument("brt")
         #set brigtness and color
-        self.rocket.set_color(brt,color)
+        self.rocket.set('color', color)
+        self.rocket.set('brightness', brt)
         #set value
-        self.rocket.set_value(int(self.get_body_argument("val")))
+        self.rocket.set('value',int(self.get_body_argument("val")))
         #set color list
-        self.rocket.set_clist(self.get_body_argument("clist"))
+        self.rocket.set('color_list', self.get_body_argument("clist"))
         #set pattern
-        self.rocket.set_pattern(self.get_body_argument("pattern"))
+        self.rocket.set('pattern', self.get_body_argument("pattern"))
 
         self.redirect('pattern.html',True)
 
@@ -78,12 +83,15 @@ class NoseconeHandler(tornado.web.RequestHandler):
     def initialize(self, rocket):
         self.rocket=rocket
     def get(self):
-        #TODO: get nosecone and chute values
-        nc_info=self.rocket.get_NC()
-        chute_info=self.rocket.get_chute()
+        info = {}
+        #get values and stor in dict
+        for key in self.rocket.get_keys():
+            if key.startswith('NC_') or key.startswith('chute_'):
+                #copy value
+                info[key] = self.rocket.get(key)
+
         self.render('nosecone.html',pages=NK_pages,page='nosecone',
-                        chute=chute_info,
-                        nc=nc_info,
+                        info = info,
                         chute_patterns=self.rocket.chute_modes,
                         nc_patterns=self.rocket.NC_modes,
                     )
@@ -96,7 +104,7 @@ class NoseconeHandler(tornado.web.RequestHandler):
         t1  =int(self.get_body_argument("t1"))
         t2  =int(self.get_body_argument("t2"))
         #set chute
-        self.rocket.set_NC(mode,val1,val2,t1,t2)
+        self.rocket.set('NC', mode, val1, val2, t1, t2)
 
         self.redirect('nosecone.html')
 
@@ -114,7 +122,7 @@ class ChuteHandler(tornado.web.RequestHandler):
         t1  =int(self.get_body_argument("t1"))
         t2  =int(self.get_body_argument("t2"))
         #set chute
-        self.rocket.set_chute(mode,val1,val2,t1,t2)
+        self.rocket.set('chute', mode, val1, val2, t1, t2)
 
         self.redirect('nosecone.html')
 
@@ -140,7 +148,8 @@ class SettingsHandler(tornado.web.RequestHandler):
     def initialize(self, rocket):
         self.rocket=rocket
     def get(self):
-        flash,ram=self.rocket.get_settings()
+        ram   = self.rocket.get('ram_set')
+        flash = self.rocket.get('flash_set')
         self.render('settings.html',pages=NK_pages,page='settings',
                         flash_set=flash,
                         ram_set=ram,
@@ -163,9 +172,10 @@ class FlightPatternHandler(tornado.web.RequestHandler):
         self.rocket=rocket
     def get(self):
         #get flight pattern info
-        patterns,current=self.rocket.get_flight_patterns()
+        patterns = self.rocket.get('flight_pattern_list')
+        current = self.rocket.get('flight_pattern')
         #get expected altitude
-        altitude = self.rocket.get_altitude()
+        altitude = self.rocket.get('flight_altitude')
 
         self.render('flight_pattern.html',pages=NK_pages,page='flight_pattern',
                         patterns=patterns,
@@ -175,7 +185,7 @@ class FlightPatternHandler(tornado.web.RequestHandler):
 
     def post(self):
         #set pattern
-        self.rocket.set_flight_pattern(self.get_body_argument("pattern"))
+        self.rocket.set('flight_pattern',self.get_body_argument("pattern"))
 
         self.redirect('flight_pattern.html')
 
@@ -204,7 +214,7 @@ class AltitudeHandler(tornado.web.RequestHandler):
         #get units from post
         units = self.get_body_argument("units")
         #set altitude
-        self.rocket.set_altitude(float(altitude),units = units)
+        self.rocket.set('altitude', float(altitude), units = units)
 
         self.redirect('flight_pattern.html')
 
@@ -219,7 +229,7 @@ class NightlightHandler(tornado.web.RequestHandler):
         #get value from post
         val = self.get_body_argument("value")
         #get units from post
-        self.rocket.set_nightlight(val)
+        self.rocket.set('nightlight', val)
 
         redir = self.get_body_argument("redirect", default = '')
 
@@ -234,6 +244,7 @@ def main():
 
     handlers=[ (r"/", MainHandler,{'rocket':rocket}),
                (r"/home\.html", MainHandler,{'rocket':rocket}),
+               (r"/index\.html", MainHandler,{'rocket':rocket}),
                (r"/pattern\.html", PatternHandler,{'rocket':rocket}),
                (r"/ADC\.html", ADCHandler,{'rocket':rocket}),
                (r"/nosecone\.html", NoseconeHandler,{'rocket':rocket}),
@@ -245,8 +256,6 @@ def main():
                (r"/flight_pattern\.html", FlightPatternHandler,{'rocket':rocket}),
                (r"/nightlight", NightlightHandler,{'rocket':rocket}),
                ]
-
-    print(handlers)
 
     app = tornado.web.Application(
         handlers,

@@ -20,7 +20,7 @@
                 <select name="mode" id="mode">
                     {% for p in nc_patterns %}
                         <option value="{{p}}"
-                                {% if p==nc['mode'] %}
+                                {% if p==info['NC_mode'] %}
                                 selected=True
                                 {% end %}
                                 >{{p}}</option>
@@ -28,16 +28,16 @@
                 </select><br><br>
 
                 <label for="val1">Value 1 :</label>
-                <input name="val1" type="number" value="{{nc['val1']}}"><br><br>
+                <input name="val1" type="number" value="{{info['NC_val1']}}"><br><br>
 
                 <label for="val2">Value 2 :</label>
-                <input name="val2" type="number" value="{{nc['val2']}}"><br><br>
+                <input name="val2" type="number" value="{{info['NC_val2']}}"><br><br>
                 
                 <label for="t1">Time 1 :</label>
-                <input name="t1" type="number" value="{{nc['t1']}}"><br><br>
+                <input name="t1" type="number" value="{{info['NC_t1']}}"><br><br>
 
                 <label for="t2">Time 2 :</label>
-                <input name="t2" type="number" value="{{nc['t2']}}"><br><br>
+                <input name="t2" type="number" value="{{info['NC_t2']}}"><br><br>
 
                 <input type="submit" value="Update Nosecone"><br><br>
             </form>
@@ -48,7 +48,7 @@
                 <select name="mode" id="mode">
                     {% for p in chute_patterns %}
                         <option value="{{p}}"
-                                {% if p==chute['mode'] %}
+                                {% if p==info['chute_mode'] %}
                                 selected=True
                                 {% end %}
                                 >{{p}}</option>
@@ -56,16 +56,16 @@
                 </select><br><br>
                     
                 <label for="val1">Value 1 :</label>
-                <input name="val1" type="number" value="{{chute['val1']}}"><br><br>
+                <input name="val1" type="number" value="{{info['chute_val1']}}"><br><br>
 
                 <label for="val2">Value 2 :</label>
-                <input name="val2" type="number" value="{{chute['val2']}}"><br><br>
+                <input name="val2" type="number" value="{{info['chute_val2']}}"><br><br>
                 
                 <label for="t1">Time 1 :</label>
-                <input name="t1" type="number" value="{{chute['t1']}}"><br><br>
+                <input name="t1" type="number" value="{{info['chute_t1']}}"><br><br>
 
                 <label for="t2">Time 2 :</label>
-                <input name="t2" type="number" value="{{chute['t2']}}"><br><br>
+                <input name="t2" type="number" value="{{info['chute_t2']}}"><br><br>
 
                 <input type="submit" value="Update Chute"><br><br>
             </form>

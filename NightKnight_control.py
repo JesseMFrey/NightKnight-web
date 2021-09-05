@@ -5,16 +5,136 @@ import re
 #custom exception for commands
 class CommandError(Exception):
     pass
+
+class NKSetting:
+    def __init__(self, name, get_func, set_func):
+        self.name = name
+        self.get_func = get_func
+        self.set_func = set_func
+
+        self.value = None
+
+    def add(self, dest):
+        dest[self.name] = self
+
+    def clear(self):
+        self.value = None
+
+    def get(self):
+        #check if we have a value
+        if self.value is None:
+            #run get function
+            self.get_func()
+        return self.value
+
+    def set(self, *args, **kwargs):
+        if self.set_func is None:
+            raise RuntimeError(f'{self.name} can not be set')
+
+        #check if we only have one input value
+        single_val= len(args)==1 and not kwargs
+
+        if not single_val or self.value != args[0]:
+            self.set_func(*args, **kwargs)
+
+            if single_val:
+                self.value = args[0]
+            else:
+                self.clear()
+
+class NKMetta:
+    def __init__(self, name, set_func):
+        self.name = name
+        self.set_func = set_func
+
+    def add(self, dest):
+        dest[self.name] = self
+
+    def set(self, *args, **kwargs):
+        self.set_func(*args, **kwargs)
+
 class NightKnight:
 
     NC_modes=("static", "fade", "flash", "blip","pattern")
     chute_modes=("static", "fade", "flash", "blip")
+    saved_settings = ('pattern', 'value', 'brightness', 'color', 'color_list',
+                      'flight_pattern', 'flight_altitude')
 
     def __init__(self,port,debug=False):
-      self._sobj=serial.Serial(port,timeout=0.5) 
-      self._textin=io.TextIOWrapper(io.BufferedReader(self._sobj))
-      self.port_name=port
-      self.debug=debug
+        self._sobj=serial.Serial(port,timeout=0.5) 
+        self._textin=io.TextIOWrapper(io.BufferedReader(self._sobj))
+        self.port_name=port
+        self.debug=debug
+
+        self.cache = {}
+
+        #add lists first
+        NKSetting('pattern_list',        self.get_patterns,        None).add(self.cache)
+        NKSetting('flight_pattern_list', self.get_flight_patterns, None).add(self.cache)
+        NKSetting('clist_list',          self.get_clists,          None).add(self.cache)
+
+        #add everything else
+        NKSetting('pattern',    self.get_patterns, self.set_pattern).add(self.cache)
+        NKSetting('value',      self.get_value,    self.set_value  ).add(self.cache)
+        NKSetting('brightness', self.get_brightness,    self.set_brightness  ).add(self.cache)
+        NKSetting('color',      self.get_color,    self.set_color  ).add(self.cache)
+        NKSetting('color_list', self.get_clists,   self.set_clist  ).add(self.cache)
+
+        #nosecone things
+        NKSetting('NC_mode',   self.get_NC, None).add(self.cache)
+        NKSetting('NC_val1',  self.get_NC, None).add(self.cache)
+        NKSetting('NC_val2',  self.get_NC, None).add(self.cache)
+        NKSetting('NC_t1', self.get_NC, None).add(self.cache)
+        NKSetting('NC_t2', self.get_NC, None).add(self.cache)
+        NKMetta('NC', self.set_NC).add(self.cache)
+
+        #chute things
+        NKSetting('chute_mode',   self.get_chute, None).add(self.cache)
+        NKSetting('chute_val1',  self.get_chute, None).add(self.cache)
+        NKSetting('chute_val2',  self.get_chute, None).add(self.cache)
+        NKSetting('chute_t1', self.get_chute, None).add(self.cache)
+        NKSetting('chute_t2', self.get_chute, None).add(self.cache)
+        NKMetta('chute', self.set_chute).add(self.cache)
+
+        #settings
+        NKSetting('ram_set',   self.get_ram_settings,   None).add(self.cache)
+        NKSetting('flash_set', self.get_flash_settings, None).add(self.cache)
+
+        #flight pattern things
+        NKSetting('flight_pattern',  self.get_flight_patterns, self.set_flight_pattern).add(self.cache)
+        NKSetting('flight_altitude', self.get_altitude,        self.set_altitude      ).add(self.cache)
+
+        #nightlight mode
+        NKSetting('nightlight', self.get_nightlight, self.set_nightlight).add(self.cache)
+
+    def get(self, key):
+
+        return self.cache[key].get()
+
+    def set(self, key, *args, **kwargs):
+
+        self.cache[key].set(*args, **kwargs)
+
+        #invalidate ram settings for some things
+        if key in self.saved_settings:
+            self._clear('ram_set')
+
+    def get_keys(self):
+        return tuple(self.cache.keys())
+
+    def _set(self, key, value):
+        self.cache[key].value = value
+
+    def _clear(self, key):
+        #check for metta settings
+        val = self.cache[key]
+        if isinstance(val, NKMetta):
+            for k in self.get_keys():
+                if k.startswith(key+'_'):
+                    #clear value
+                    self._clear(k)
+        else:
+            val.clear()
 
     def set_pattern(self,pat):
         self._command(f'pat {pat}')
@@ -44,6 +164,7 @@ class NightKnight:
         line=self.get_line()
         #empty array
         patterns=[]
+        current=None
         while(not line.startswith('>')):
             #strip spaces
             pat=line.strip()
@@ -56,8 +177,9 @@ class NightKnight:
             patterns.append(pat)
             #get next line
             line=self.get_line()
-        #return patterns and current pattern
-        return (tuple(patterns),current)
+        #set patterns and current pattern
+        self._set('pattern_list',tuple(patterns))
+        self._set('pattern',current)
 
     def set_flight_pattern(self,pat):
         self._command(f'fpat {pat}')
@@ -86,8 +208,9 @@ class NightKnight:
             patterns.append(pat)
             #get next line
             line=self.get_line()
-        #return patterns and current pattern
-        return (tuple(patterns),current)
+        #set patterns and current pattern
+        self._set('flight_pattern_list',tuple(patterns))
+        self._set('flight_pattern',current)
 
     def set_value(self,value):
         self._command(f'value {value}')
@@ -104,8 +227,8 @@ class NightKnight:
         m=re.match(f'Value : (?P<val>[0-9]+)',line)
         if(not m):
             raise CommandError(f'unable to parse \'{line}\'')
-        #return value
-        return int(m.group('val'))
+        #set value
+        self._set('value', int(m.group('val')))
 
     def get_color(self):
         self._command('color')
@@ -114,16 +237,51 @@ class NightKnight:
         m=re.match(r'color : (?P<brt>0x[A-F0-9]+) (?P<red>0x[A-F0-9]+) (?P<green>0x[A-F0-9]+) (?P<blue>0x[A-F0-9]+)',line)
         if(not m):
             raise RuntimeError(f'unable to parse \'{line}\'')
-        return (int(m.group('brt'),16),(int(m.group('red'),16),int(m.group('green'),16),int(m.group('blue'),16)))
+        brt = int(m.group('brt'),16)
+        red = int(m.group('red'),16)
+        green = int(m.group('green'),16)
+        blue = int(m.group('blue'),16)
+        self._set('brightness', brt)
+        self._set('color', (red, green, blue))
 
-    def set_color(self,brt,color):
-        self._command(f'color {brt} {color[0]} {color[1]} {color[2]}')
+    def set_color(self,color):
+        self._command(f'color {color[0]} {color[1]} {color[2]}')
         #get a line for color
         line=self.get_line()
         m=re.match(r'color : (?P<brt>0x[A-F0-9]+) (?P<red>0x[A-F0-9]+) (?P<green>0x[A-F0-9]+) (?P<blue>0x[A-F0-9]+)',line)
         if(not m):
             raise RuntimeError(f'unable to parse \'{line}\'')
         #TODO : check to see if color matches??
+
+    def set_brightness(self,brt):
+        self._command(f'brt {brt}')
+        #get a line for brightness
+        line=self.get_line()
+        m=re.match(r'Brightness (?P<brt>[0-9]+)',line)
+        if(not m):
+            raise RuntimeError(f'unable to parse \'{line}\'')
+        brt_val = m.group('brt')
+        #get line, should be the prompt '>', otherwise error
+        line=self.get_line()
+        #check for '>' char
+        if(not line.startswith('>')):
+            raise RuntimeError(f'Could not set NC \'{line.strip()}\'')
+        if int(brt_val) != int(brt):
+            raise RuntimeError(f'Set brightness \'{brt_val}\' does not match \'{brt}\'')
+
+    def get_brightness(self):
+        self._command(f'brt')
+        #get a line for brightness
+        line=self.get_line()
+        m=re.match(r'Brightness (?P<brt>[0-9]+)',line)
+        if(not m):
+            raise RuntimeError(f'unable to parse \'{line}\'')
+        brt = int(m.group('brt'))
+        #check for '>' char
+        if(not line.startswith('>')):
+            raise RuntimeError(f'Could not set NC \'{line.strip()}\'')
+        self._set('brightness', brt)
+
 
     def get_clists(self):
         self._command('clist')
@@ -148,8 +306,9 @@ class NightKnight:
             lists.append(lname)
             #get next line
             line=self.get_line()
-        #return patterns and current pattern
-        return (tuple(lists),current)
+        #set patterns and current pattern
+        self._set('clist_list',tuple(lists))
+        self._set('color_list',current)
 
     def set_clist(self,clist):
         self._command(f'clist {clist}')
@@ -159,15 +318,15 @@ class NightKnight:
             raise RuntimeError(line[len(err_prefix):].strip())
 
     def get_NC(self):
-        status={}
+        #status={}
         self._command('NC')
         line=self.get_line()
         #line for PWM status
         m=re.match(r'Nosecone PWM : 0X(?P<hex>[0-9A-F]{3}) = (?P<percent>\d+\.\d+)',line)
         if(not m):
             raise RuntimeError(f'unable to parse \'{line}\'')
-        status['percent']=float(m.group('percent'))
-        status['PWM']=int(m.group('hex'),16)
+        #status['percent']=float(m.group('percent'))
+        #status['PWM']=int(m.group('hex'),16)
         #get line for heading
         line=self.get_line().strip()
         if(line != 'Nosecone:'):
@@ -177,14 +336,17 @@ class NightKnight:
         m=re.match(r'\s+Mode : (?P<mode>\S+)',line)
         if(not m):
             raise RuntimeError(f'unable to parse \'{line}\'')
-        status|=m.groupdict()
-#if we are in pattern mode we'll get an extra line
-        if(status['mode']=='pattern'):
+        #status|=m.groupdict()
+        mode = m.group('mode')
+        self._set('NC_mode', mode)
+        #if we are in pattern mode we'll get an extra line
+        if(mode =='pattern'):
             line=self.get_line()
             m=re.match(r'\s+Pattern Mode : (?P<mode>\S+)',line)
             if(not m):
                 raise RuntimeError(f'unable to parse \'{line}\'')
-            status|=m.groupdict()
+            #status|=m.groupdict()
+            #self._set('NC_mode', m.group('mode'))
 
         for name in ('val1','val2','t1','t2','count','state','dir'):
             #get line
@@ -192,9 +354,10 @@ class NightKnight:
             m=re.match(r'\s+'+name+r' : (?P<val>[+-]?[0-9]+)',line)
             if(not m):
                 raise RuntimeError(f'unable to parse \'{line}\' expected \'{name}\'')
-            status[name]=int(m.group('val'))
+            if name in ('val1','val2','t1','t2'):
+                #set in cache
+                self._set('NC_'+name, int(m.group('val')))
 
-        return status
 
     def set_NC(self,mode,val1=0,val2=0,t1=0,t2=0):
         self._command(f'NC {mode} {val1} {val2} {t1} {t2}')
@@ -205,15 +368,14 @@ class NightKnight:
             raise RuntimeError(f'Could not set NC \'{line.strip()}\'')
 
     def get_chute(self):
-        status={}
         self._command('chute')
         line=self.get_line()
         #line for PWM status
         m=re.match(r'Chute PWM\s+: 0X(?P<hex>[0-9A-F]{3}) = (?P<percent>\d+\.\d+)',line)
         if(not m):
             raise RuntimeError(f'unable to parse \'{line}\'')
-        status['percent']=float(m.group('percent'))
-        status['PWM']=int(m.group('hex'),16)
+        #status['percent']=float(m.group('percent'))
+        #status['PWM']=int(m.group('hex'),16)
         #get line for heading
         line=self.get_line().strip()
         if(line != 'Chute:'):
@@ -223,7 +385,8 @@ class NightKnight:
         m=re.match(r'\s+Mode : (?P<mode>\S+)',line)
         if(not m):
             raise RuntimeError(f'unable to parse \'{line}\'')
-        status|=m.groupdict()
+        #status|=m.groupdict()
+        self._set('chute_mode', m.group('mode'))
 
         for name in ('val1','val2','t1','t2','count','state','dir'):
             #get line
@@ -231,9 +394,10 @@ class NightKnight:
             m=re.match(r'\s+'+name+r' : (?P<val>[+-]?[0-9]+)',line)
             if(not m):
                 raise RuntimeError(f'unable to parse \'{line}\' expected \'{name}\'')
-            status[name]=int(m.group('val'))
+            if name in ('val1','val2','t1','t2'):
+                #set in cache
+                self._set('chute_'+name, int(m.group('val')))
 
-        return status
 
     def set_chute(self,mode,val1=0,val2=0,t1=0,t2=0):
         self._command(f'chute {mode} {val1} {val2} {t1} {t2}')
@@ -314,10 +478,13 @@ class NightKnight:
         return settings
 
 
-    def get_settings(self):
-        ram=self._get_settings()
-        flash=self._get_settings(settype='flash')
-        return (flash,ram)
+    def get_ram_settings(self):
+        settings = self._get_settings()
+        self._set('ram_set',settings)
+
+    def get_flash_settings(self):
+        settings = self._get_settings(settype='flash')
+        self._set('flash_set',settings)
 
     def write_settings(self):
         self._command('settings save')
@@ -325,6 +492,7 @@ class NightKnight:
         line=self._textin.readline()
         while(line and not line.startswith('>')):
             line=self._textin.readline()
+        self._clear('flash_set')
     
     def clear_settings(self):
         self._command('settings clear')
@@ -332,6 +500,7 @@ class NightKnight:
         line=self._textin.readline()
         while(line and not line.startswith('>')):
             line=self._textin.readline()
+        self._clear('flash_set')
     
     def get_altitude(self):
         self._command('alt')
@@ -344,7 +513,7 @@ class NightKnight:
         #split out units
         value, units = value.split(' ')
         #return value
-        return int(value)
+        self._set('flight_altitude', int(value))
 
     def set_altitude(self, val, units='meters'):
         #check units
@@ -370,9 +539,9 @@ class NightKnight:
         val = val.strip()
 
         if val == 'on':
-            return True
+            self._set('nightlight',True)
         elif val == 'off':
-            return False
+            self._set('nightlight',False)
         else:
             raise RuntimeError(f'Unknown status \'{val}\'')
 
