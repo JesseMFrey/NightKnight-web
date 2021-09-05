@@ -351,6 +351,35 @@ class NightKnight:
         #set value
         self._command(f'alt {int(val)}')
 
+    def get_nightlight(self):
+        self._command('nightlight')
+        #get line
+        line = self.get_line()
+        #split line
+        l, val = line.split(':')
+
+        #strip whitespace
+        val = val.strip()
+
+        if val == 'on':
+            return True
+        elif val == 'off':
+            return False
+        else:
+            raise RuntimeError(f'Unknown status \'{val}\'')
+
+    def set_nightlight(self, val):
+        #if value is bool, use strings
+        if isinstance(val,bool):
+            if val:
+                val_str = 'on'
+            else:
+                val_str = 'off'
+        else:
+            #otherwise use string representation
+            val_str = str(val)
+        self._command(f'nightlight {val_str}')
+
 
     def get_line(self):
         line=self._textin.readline()

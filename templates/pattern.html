@@ -51,6 +51,18 @@
                     </select><br><br>
                     <input type="submit" value="Submit">
                 </form>
+                <br>
+                <form action="/nightlight" method="POST">
+                    <input type="hidden" name="redirect" value="/pattern.html" /> 
+                    <label for='value'>Night Light mode </label>
+                    <input type="submit" name='value'
+                        {% if nightlight %}
+                            value="off"
+                        {% else %}
+                            value="on"
+                        {% end %}
+                    >
+                </form>
             </div>
         </div>
     </div>

@@ -34,6 +34,7 @@ class PatternHandler(tornado.web.RequestHandler):
         val=self.rocket.get_value()
         brt,color=self.rocket.get_color()
         clists,currentlst=self.rocket.get_clists()
+        nightlight = self.rocket.get_nightlight()
         self.render('pattern.html',pages=NK_pages,page='patterns',
                         patterns=patterns,
                         pat=current_pat,
@@ -42,6 +43,7 @@ class PatternHandler(tornado.web.RequestHandler):
                         color=color,
                         clists=clists,
                         currentlst=currentlst,
+                        nightlight = nightlight,
                     )
 
     def post(self):
@@ -184,6 +186,24 @@ class AltitudeHandler(tornado.web.RequestHandler):
 
         self.redirect('flight_pattern.html')
 
+class NightlightHandler(tornado.web.RequestHandler):
+    def initialize(self, rocket):
+        self.rocket = rocket
+        
+    def get(self):
+        pass
+
+    def post(self):
+        #get value from post
+        val = self.get_body_argument("value")
+        #get units from post
+        self.rocket.set_nightlight(val)
+
+        redir = self.get_body_argument("redirect", default = '')
+
+        if redir:
+            self.redirect(redir)
+
 
 def main():
     parse_command_line()
@@ -201,6 +221,7 @@ def main():
                (r"/resets\.html", ResetsHandler,{'rocket':rocket}),
                (r"/settings\.html", SettingsHandler,{'rocket':rocket}),
                (r"/flight_pattern\.html", FlightPatternHandler,{'rocket':rocket}),
+               (r"/nightlight", NightlightHandler,{'rocket':rocket}),
                ]
 
     print(handlers)
