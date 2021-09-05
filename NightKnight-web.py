@@ -39,8 +39,11 @@ class PatternHandler(tornado.web.RequestHandler):
         currentlst=self.rocket.get('color_list')
         nightlight = self.rocket.get('nightlight')
 
+        NC_pat = self.rocket.get('NC_mode') == 'pattern'
+
         self.render('pattern.html',pages=NK_pages,page='patterns',
                         patterns=patterns,
+                        set_nc=NC_pat,
                         pat=current_pat,
                         value=val,
                         brightness=brt,

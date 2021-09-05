@@ -28,7 +28,11 @@
                     </select><br>
 
                     <label for="setNC">Use nosecone for pattern </label>
-                    <input name="setNC" type="checkbox" value="NC"><br><br>
+                    <input name="setNC" type="checkbox" value="NC"
+                            {% if set_nc %}
+                                checked
+                            {% end %}
+                            ><br><br>
 
                     <label for="color">Color : </label>
                     <input name="color" type="color" id="colorpicker" onchange="clickColor(0, -1, -1, 5)" value="#{{bytearray(color).hex()}}"><br><br>
