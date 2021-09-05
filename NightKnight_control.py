@@ -389,6 +389,34 @@ class NightKnight:
             val_str = str(val)
         self._command(f'nightlight {val_str}')
 
+    def reset(self,rtype):
+        #reset types are in lower case
+        rtype = rtype.lower()
+        #send reset command
+        self._command(f'rst {rtype}')
+
+        line = self.get_line()
+
+        if line.startswith('Error'):
+            raise RuntimeError(line)
+
+    def get_resets(self):
+        #send resets command
+        self._command('resets')
+
+        line=self._textin.readline()
+        number = None
+        reason = None
+        while(line and not line.startswith('>')):
+            if line.startswith('Number of resets ='):
+                l, value = line.split('=')
+                number = int(value.strip())
+            elif line.startswith('Reset reason :'):
+                l, value = line.split(':')
+                reason = value.strip()
+            line=self._textin.readline()
+
+        return number, reason
 
     def get_line(self):
         line=self._textin.readline()

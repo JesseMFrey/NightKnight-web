@@ -21,9 +21,12 @@
                 <div>
                     Last reset reason : {{rst_reason}}
                 </div>
+                <br>
 
-                <button type="button">Power on Reset</button> 
-                <button type="button">Power up Clear</button> 
+                <form action="/resets.html" method="POST">
+                    <button type="submit" name="reset_type" value="POR">Power on Reset</button> <br>
+                    <button type="submit" name="reset_type" value="PUC">Power up Clear</button> 
+                </form>
             </div>
         </div>
     </div>

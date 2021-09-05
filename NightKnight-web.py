@@ -122,9 +122,19 @@ class ResetsHandler(tornado.web.RequestHandler):
     def initialize(self, rocket):
         self.rocket=rocket
     def get(self):
-        #TODO: get reset info
+
+        num, reason = self.rocket.get_resets()
+
         self.render('resets.html',pages=NK_pages,page='resets',
-                    rst_reason='Everything was wrong!',rst_num=1000)
+                    rst_reason=reason,rst_num=num)
+    def post(self):
+        #get reset type
+        rtype = self.get_body_argument("reset_type")
+
+        self.rocket.reset(rtype)
+
+        self.redirect('resets.html')
+
 
 class SettingsHandler(tornado.web.RequestHandler):
     def initialize(self, rocket):
