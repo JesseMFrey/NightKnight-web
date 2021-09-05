@@ -294,8 +294,6 @@ class NightKnight:
             #get another line
             line=self._textin.readline()
         while(line and not line.startswith('>')):
-            #TESTING : print things
-            print(line)
             #split into name and value
             name,value=line.split(':')
             #strip spaces from name
