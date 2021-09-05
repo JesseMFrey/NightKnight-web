@@ -67,7 +67,6 @@ class NightKnight:
         if(not line.startswith('>')):
             raise CommandError(f'Unable to parse response \'{line}\'')
 
-    @_cached
     def get_flight_patterns(self):
         self._command('fpat')
         #get line before loop
