@@ -17,7 +17,7 @@
             </div>
             <div>
                 {% for k,v in adc_dat.items() %}
-                    {{k}} = {{str(v[0])+' '+ v[1]}} <br><br>
+                    {{k}} = {{f'{v[0]:.2f} {v[1]}'}} <br><br>
                 {% end %}
             </div>
         </div>
