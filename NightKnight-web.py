@@ -2,6 +2,7 @@
 
 import os.path
 import asyncio
+import json
 import tornado.escape
 import tornado.ioloop
 import tornado.locks
@@ -261,6 +262,36 @@ class BrightnessHandler(tornado.web.RequestHandler):
         if redir:
             self.redirect(redir)
 
+class ParameterHandler(tornado.web.RequestHandler):
+    def initialize(self, rocket):
+        self.rocket = rocket
+
+    def get(self):
+        pass
+
+    def post(self):
+        #get key to set/get from post
+        key = self.get_body_argument("key")
+        #get opperation from post
+        opp = self.get_body_argument("opp",'read')
+
+        if opp == 'read':
+            val = self.rocket.get(key)
+
+            #create json response
+            response = json.dumps({key:val})
+            #send response
+            self.write(response)
+        elif opp == 'write':
+            val = self.get_body_argument('val')
+
+            self.rocket.set('key', val)
+
+        redir = self.get_body_argument("redirect", default = '')
+
+        if redir:
+            self.redirect(redir)
+
 
 
 def main():
@@ -282,6 +313,7 @@ def main():
                (r"/flight_pattern\.html", FlightPatternHandler,{'rocket':rocket}),
                (r"/nightlight", NightlightHandler,{'rocket':rocket}),
                (r"/brightness", BrightnessHandler,{'rocket':rocket}),
+               (r"/parameter", ParameterHandler,{'rocket':rocket}),
                ]
 
     app = tornado.web.Application(
