@@ -243,6 +243,25 @@ class NightlightHandler(tornado.web.RequestHandler):
         if redir:
             self.redirect(redir)
 
+class BrightnessHandler(tornado.web.RequestHandler):
+    def initialize(self, rocket):
+        self.rocket = rocket
+
+    def get(self):
+        pass
+
+    def post(self):
+        #get value from post
+        val = self.get_body_argument("value")
+        #get units from post
+        self.rocket.set('brightness', val)
+
+        redir = self.get_body_argument("redirect", default = '')
+
+        if redir:
+            self.redirect(redir)
+
+
 
 def main():
     parse_command_line()
@@ -262,6 +281,7 @@ def main():
                (r"/settings\.html", SettingsHandler,{'rocket':rocket}),
                (r"/flight_pattern\.html", FlightPatternHandler,{'rocket':rocket}),
                (r"/nightlight", NightlightHandler,{'rocket':rocket}),
+               (r"/brightness", BrightnessHandler,{'rocket':rocket}),
                ]
 
     app = tornado.web.Application(
