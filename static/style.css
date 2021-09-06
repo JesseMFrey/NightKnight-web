@@ -67,3 +67,25 @@ body {
     overflow-y: auto;
 }
 */
+
+/*Set link colors*/
+
+/* unvisited link */
+a:link {
+  color: #04FF00;
+}
+
+/* visited link */
+a:visited {
+  color: #F6FF00;
+}
+
+/* mouse over link */
+a:hover {
+  color: #3F52FD;
+}
+
+/* selected link */
+a:active {
+  color: #ea80fc;
+} 
