@@ -32,7 +32,7 @@ class PatternHandler(tornado.web.RequestHandler):
     def get(self):
         
         patterns = self.rocket.get('pattern_list')
-        current_pat = self.rocket.get('pattern')
+        current_pat = self.rocket.get('pattern',force=True)
         val = self.rocket.get('value')
         color = self.rocket.get('color')
         brt = self.rocket.get('brightness')
@@ -68,7 +68,7 @@ class PatternHandler(tornado.web.RequestHandler):
         #set color list
         self.rocket.set('color_list', self.get_body_argument("clist"))
         #set pattern
-        self.rocket.set('pattern', self.get_body_argument("pattern"),force=True)
+        self.rocket.set('pattern', self.get_body_argument("pattern"))
 
         self.redirect('pattern.html',True)
 
