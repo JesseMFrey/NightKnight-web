@@ -54,7 +54,7 @@
                     <p>
                         <label for="brightness">Brightness :</label>
                         <input name="brt" type="range" min="0" max="31" value="{{brightness}}" class="slider" id="brightness" title="Pattern brightness slider">
-                        <input type="number"  min="0" max="31" value="{{brightness}}" id="brightness_num" style="width: 3.3em" title="Pattern brightness number">
+                        <output for="brightness" id="brightness_num" style="width: 6em;font-family: monospace;">
                     </p>
 
                     <p>
@@ -123,13 +123,12 @@
     </script>
     <script>
             var range = document.getElementById('brightness');
-            var field = document.getElementById('brightness_num');
+            var output = document.getElementById('brightness_num');
+            //set initial value
+            output.value = range.value;
 
             range.addEventListener('input', function (e) {
-              field.value = e.target.value;
-            });
-            field.addEventListener('input', function (e) {
-              range.value = e.target.value;
+              output.value = e.target.value;
             });
     </script>
 </body>
