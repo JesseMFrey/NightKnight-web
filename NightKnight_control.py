@@ -20,11 +20,14 @@ class NKSetting:
     def clear(self):
         self.value = None
 
-    def get(self):
+    def get(self, **kwargs):
+        #get force argument
+        force = kwargs.pop('force',False)
+
         #check if we have a value
-        if self.value is None:
+        if force or self.value is None:
             #run get function
-            self.get_func()
+            self.get_func(**kwargs)
         return self.value
 
     def set(self, *args, **kwargs):
@@ -110,9 +113,9 @@ class NightKnight:
         #nightlight mode
         NKSetting('nightlight', self.get_nightlight, self.set_nightlight).add(self.cache)
 
-    def get(self, key):
+    def get(self, key, **kwargs):
 
-        return self.cache[key].get()
+        return self.cache[key].get(**kwargs)
 
     def set(self, key, *args, **kwargs):
 
