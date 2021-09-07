@@ -15,17 +15,20 @@
                 <img class="header-img" src="{{ static_url("NK.png") }}" alt="Night Knight">
             </div>
             <div>
-                <div>
+                <p>
                     Number of resets Since power on : {{rst_num}}
-                </div>
-                <div>
+                </p>
+                <p>
                     Last reset reason : {{rst_reason}}
-                </div>
-                <br>
+                </p>
 
                 <form action="/resets.html" method="POST">
-                    <button type="submit" name="reset_type" value="POR">Power on Reset</button> <br>
-                    <button type="submit" name="reset_type" value="PUC">Power up Clear</button> 
+                    <p>
+                        <button type="submit" name="reset_type" value="POR">Power on Reset</button>
+                    </p>
+                    <p>
+                        <button type="submit" name="reset_type" value="PUC">Power up Clear</button>
+                    </p>
                 </form>
             </div>
         </div>
