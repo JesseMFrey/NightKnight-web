@@ -17,8 +17,8 @@
             <div>
                 <form action="/pattern.html" method="POST">
                     <p>
-                        <label for="pattern">Pattern :</label>
-                        <select name="pattern" id="pat">
+                        <label for="pat">Pattern :</label>
+                        <select name="pattern" id="pat" title="LED pattern to use">
                             {% for p in patterns %}
                             <option value="{{p}}"
                                     {% if p==pat %}
@@ -31,7 +31,7 @@
 
                     <p>
                         <label for="setNC">Use nosecone for pattern </label>
-                        <input name="setNC" type="checkbox" value="NC"
+                        <input name="setNC" type="checkbox" id="setNC" value="NC" title="if checked LED pattern will also set the nosecone"
                                 {% if set_nc %}
                                     checked
                                 {% end %}
@@ -39,32 +39,32 @@
                     </p>
 
                     <p>
-                        <label for="color">Color : </label>
-                        <input name="color" type="color" id="colorpicker" value="#{{bytearray(color).hex()}}">
+                        <label for="colorpicker">Color : </label>
+                        <input name="color" type="color" id="colorpicker" value="#{{bytearray(color).hex()}}" title="Color to use in pattern">
                     </p>
                     <p>
                         <label for="color_red">Red</label>
-                        <input type="number" min="0" max="255" value="{{color[0]}}" id="color_red" style="width: 4.3em">
+                        <input type="number" min="0" max="255" value="{{color[0]}}" id="color_red" style="width: 4.3em" title="Red component of color">
                         <label for="color_grn">Green</label>
-                        <input type="number" min="0" max="255" value="{{color[1]}}" id="color_grn" style="width: 4.3em">
+                        <input type="number" min="0" max="255" value="{{color[1]}}" id="color_grn" style="width: 4.3em" title="Green component of color">
                         <label for="color_blue">Blue</label>
-                        <input type="number" min="0" max="255" value="{{color[2]}}" id="color_blue" style="width: 4.3em">
+                        <input type="number" min="0" max="255" value="{{color[2]}}" id="color_blue" style="width: 4.3em" title="Blue component of color">
                     </p>
 
                     <p>
-                        <label for="brt">Brightness :</label>
-                        <input name="brt" type="range" min="0" max="31" value="{{brightness}}" class="slider" id="brightness">
-                        <input type="number"  min="0" max="31" value="{{brightness}}" id="brightness_num" style="width: 3.3em">
+                        <label for="brightness">Brightness :</label>
+                        <input name="brt" type="range" min="0" max="31" value="{{brightness}}" class="slider" id="brightness" title="Pattern brightness slider">
+                        <input type="number"  min="0" max="31" value="{{brightness}}" id="brightness_num" style="width: 3.3em" title="Pattern brightness number">
                     </p>
 
                     <p>
                         <label for="val">Modifier value :</label>
-                        <input type="number" name="val" value="{{value}}" style="width: 4.3em">
+                        <input type="number" name="val" id="val" value="{{value}}" style="width: 4.3em" title="Value to adjust how the pattern opperates">
                     </p>
 
                     <p>
                         <label for="clist">Color List :</label>
-                        <select name="clist" id="clist">
+                        <select name="clist" id="clist" title="Color list to use for pattern">
                             {% for l in clists %}
                             <option value="{{l}}"
                                     {% if l==currentlst %}
@@ -74,13 +74,13 @@
                             {% end %}
                         </select>
                     </p>
-                    <input type="submit" value="Submit">
+                    <input type="submit" value="Submit" title="Send pattern updates to rocket">
                 </form>
                 <form action="/nightlight" method="POST">
-                    <input type="hidden" name="redirect" value="/pattern.html" /> 
+                    <input type="hidden" name="redirect" value="/pattern.html" title="used to redirect form back here"/> 
                     <p>
                         <label for='value'>Night Light mode </label>
-                        <input type="submit" name='value'
+                        <input type="submit" name='value' title="Turn {{ 'off' if nightlight else 'on' }} night light mode (only fins on)."
                             {% if nightlight %}
                                 value="off"
                             {% else %}

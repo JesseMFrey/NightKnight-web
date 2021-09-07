@@ -12,32 +12,46 @@
         {% include menu.html %}
         <div id="content" class="center">
             <div id="header">
+                <h1>
                 <img class="header-img" src="{{ static_url("NK.png") }}" alt="Night Knight">
+                </h1>
             </div>
             {% for sn,s in (('RAM',ram_set),('Flash',flash_set)) %}
                 <div>
-                <h1>{{sn + ' Settings'}}</h1>
+                <h2>{{sn + ' Settings'}}</h2>
                 {% for n,v in s.items() %}
                     {% if n =='color' %}
-                        color : {{v[1]}} <br><br>
-                        brightness : {{v[0]}} <br><br>
+                        <p>
+                            color : {{v[1]}} 
+                        </p>
+                        <p>
+                            brightness : {{v[0]}} 
+                        </p>
                     {% elif n == 'flash valid' %}
                         {% if not flash_set['flash valid'] %}
-                            <!-- make this red or bold or something -->
-                            Flash settings are invalid!<br><br>
+                            <p>
+                                <!-- make this red or bold or something -->
+                                Flash settings are invalid!
+                            </p>
                         {% end %}
                     {% elif n == 'type' %}
                         <!-- don't print 'type' -->
                     {% else %}
-                        {{n}} : {{v}} <br><br>
+                        <p>
+                            {{n}} : {{v}} 
+                        </p>
                     {% end %}
                 {% end %}
                 </div>
             {% end %}
             <div>
                 <form action="/settings.html" method="POST">
-                    <input type="submit" name=action value='save'> <br><br>
-                    <input type="submit" name=action value='clear'> 
+                    <p>
+                        <input type="submit" name=action value='save'> 
+                    </p>
+                    <p>
+                        <input type="submit" name=action value='clear'> 
+                    </p>
                 </form>
             </div>
         </div>

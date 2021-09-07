@@ -16,8 +16,10 @@
             </div>
             <div>
                 <form action="/flight_pattern.html" method="POST">
-                    <label for="pattern">Flight Pattern :</label>
-                    <select name="pattern" id="pat">
+                    <p>
+                    <label for="pat">Flight Pattern :</label>
+                    <select name="pattern" id="pat"
+                        title="Set of LED patterns to use during the various phases of flight">
                         {% for p in patterns %}
                             <option value="{{p}}"
                                     {% if p==pat %}
@@ -25,21 +27,34 @@
                                     {% end %}
                                     >{{p}}</option>
                         {% end %}
-                    </select><br><br>
+                    </select>
+                    </p>
                     
-                    <input type="submit" value="Set Pattern"> <br><br>
+                    <p>
+                        <input type="submit" value="Set Pattern"> 
+                    </p>
                 </form>
                 <form action="/altitude" method="POST">
-                    <label for="altitude">Expected Altitude :</label>
-                    <input name="altitude" type="number" value="{{altitude}}">
-                    <select name="units">
-                        <option value="m" selected=True>m</option>
-                        <option value="ft">ft</option>
-                    </select></br></br>
-                    <input type="submit" value="Set Altitude"> <br><br>
+                    <p>
+                        <label for="alt">Expected Altitude :</label>
+                        <input name="altitude" id="alt" type="number" value="{{altitude}}" style="width: 6.3em"
+                               title="Expected altitude of the flight. Used by some patterns to break the flight into sections.">
+                        <label for="units">Units</label>
+                        <select name="units" id="units"
+                            title="Units for altitude. Values are stored in meters">
+                            <option value="m" selected=True>m</option>
+                            <option value="ft">ft</option>
+                        </select>
+                    </p>
+                    <p>
+                        <input type="submit" value="Set Altitude"> <br><br>
+                    </p>
                 </form>
                 <form action="/simulate" method="POST">
-                    <input type="submit" value="Simulate"> <br><br>
+                    <p>
+                        <input type="submit" value="Simulate"
+                                title="Run LED pattern on saved flight data"> 
+                    </p>
                 </form>
             </div>
 

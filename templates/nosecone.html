@@ -12,62 +12,100 @@
         {% include menu.html %}
         <div id="content" class="center">
             <div id="header">
-                <img class="header-img" src="{{ static_url("NK.png") }}" alt="Night Knight">
+                <h1>
+                    <img class="header-img" src="{{ static_url("NK.png") }}" alt="Night Knight">
+                </h1>
             </div>
             <form action="/nosecone.html" method="POST">
-                Nosecone : <br><br>
-                <label for="mode">Pattern :</label>
-                <select name="mode" id="mode">
-                    {% for p in nc_patterns %}
-                        <option value="{{p}}"
-                                {% if p==info['NC_mode'] %}
-                                selected=True
-                                {% end %}
-                                >{{p}}</option>
-                    {% end %}
-                </select><br><br>
+                <h2>
+                    Nosecone
+                </h2>
+                <p>
+                    <label for="mode">Pattern :</label>
+                    <select name="mode" id="mode"
+                        title="Nosecone mode, changes how values and times are interpreted">
+                        {% for p in nc_patterns %}
+                            <option value="{{p}}"
+                                    {% if p==info['NC_mode'] %}
+                                    selected=True
+                                    {% end %}
+                                    >{{p}}</option>
+                        {% end %}
+                    </select>
+                </p>
 
-                <label for="val1">Value 1 :</label>
-                <input name="val1" type="number" value="{{info['NC_val1']}}"><br><br>
+                <p>
+                    <label for="val1">Value 1 :</label>
+                    <input name="val1" id="val1" type="number" value="{{info['NC_val1']}}"
+                           title="First brightness value. Values range from 0 (zero brightness) to  4095 (maximum brightness).">
+                </p>
 
-                <label for="val2">Value 2 :</label>
-                <input name="val2" type="number" value="{{info['NC_val2']}}"><br><br>
+                <p>
+                    <label for="val2">Value 2 :</label>
+                    <input name="val2" id="val2" type="number" value="{{info['NC_val2']}}"
+                           title="Second brightness value. Values range from 0 (zero brightness) to  4095 (maximum brightness).">
+                </p>
                 
-                <label for="t1">Time 1 :</label>
-                <input name="t1" type="number" value="{{info['NC_t1']}}"><br><br>
+                <p>
+                    <label for="t1">Time 1 :</label>
+                    <input name="t1" id="t1" type="number" value="{{info['NC_t1']}}"
+                           title="First time interval. I forget what units these are in, have fun!">
+                </p>
 
-                <label for="t2">Time 2 :</label>
-                <input name="t2" type="number" value="{{info['NC_t2']}}"><br><br>
+                <p>
+                    <label for="t2">Time 2 :</label>
+                    <input name="t2" id="t2" type="number" value="{{info['NC_t2']}}"
+                           title="Second time interval. I forget what units these are in, have fun!">
+                </p>
 
-                <input type="submit" value="Update Nosecone"><br><br>
+                <p>
+                    <input type="submit" value="Update Nosecone">
+                </p>
             </form>
             <form action="/chute" method="POST">
-                Parachute :<br><br>
+                <h2>
+                Parachute
+                </h2>
                 
-                <label for="mode">Pattern :</label>
-                <select name="mode" id="mode">
-                    {% for p in chute_patterns %}
-                        <option value="{{p}}"
-                                {% if p==info['chute_mode'] %}
-                                selected=True
-                                {% end %}
-                                >{{p}}</option>
-                    {% end %}
-                </select><br><br>
+                <p>
+                    <label for="mode">Pattern :</label>
+                    <select name="mode" id="mode"
+                        title="Parachute light mode, changes how values and times are interpreted">
+                        {% for p in chute_patterns %}
+                            <option value="{{p}}"
+                                    {% if p==info['chute_mode'] %}
+                                    selected=True
+                                    {% end %}
+                                    >{{p}}</option>
+                        {% end %}
+                    </select>
+                </p>
                     
-                <label for="val1">Value 1 :</label>
-                <input name="val1" type="number" value="{{info['chute_val1']}}"><br><br>
+                <p>
+                    <label for="val1">Value 1 :</label>
+                    <input name="val1" id="val1" type="number" value="{{info['chute_val1']}}"
+                           title="First brightness value. Values range from 0 (zero brightness) to  4095 (maximum brightness).">
+                </p>
 
-                <label for="val2">Value 2 :</label>
-                <input name="val2" type="number" value="{{info['chute_val2']}}"><br><br>
+                <p>
+                    <label for="val2">Value 2 :</label>
+                    <input name="val2" id="val2" type="number" value="{{info['chute_val2']}}"
+                           title="Second brightness value. Values range from 0 (zero brightness) to  4095 (maximum brightness).">
+                </p>
                 
-                <label for="t1">Time 1 :</label>
-                <input name="t1" type="number" value="{{info['chute_t1']}}"><br><br>
+                <p>
+                    <label for="t1">Time 1 :</label>
+                    <input name="t1" id="t1" type="number" value="{{info['chute_t1']}}"
+                           title="First time interval. I forget what units these are in, have fun!">
+                </p>
 
-                <label for="t2">Time 2 :</label>
-                <input name="t2" type="number" value="{{info['chute_t2']}}"><br><br>
+                <p>
+                    <label for="t2">Time 2 :</label>
+                    <input name="t2" id="t2" type="number" value="{{info['chute_t2']}}"
+                           title="Second time interval. I forget what units these are in, have fun!">
+                </p>
 
-                <input type="submit" value="Update Chute"><br><br>
+                <input type="submit" value="Update Chute">
             </form>
         </div>
     </div>
