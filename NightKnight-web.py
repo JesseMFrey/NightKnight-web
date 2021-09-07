@@ -140,9 +140,17 @@ class ResetsHandler(tornado.web.RequestHandler):
     def get(self):
 
         num, reason = self.rocket.get_resets()
+        current_pat = self.rocket.get('pattern',force=True)
+
+
+        if 'panic' in current_pat:
+            is_panicking = True
+        else:
+            is_panicking = False
 
         self.render('resets.html',pages=NK_pages,page='resets',
-                    rst_reason=reason,rst_num=num)
+                    rst_reason=reason,rst_num=num,
+                    panic=is_panicking, pat = current_pat)
     def post(self):
         #get reset type
         rtype = self.get_body_argument("reset_type")

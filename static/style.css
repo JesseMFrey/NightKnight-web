@@ -68,6 +68,11 @@ body {
 }
 */
 
+.panic {
+    color: #F6FF00;
+    font-weight: bold;
+}
+
 /*Set link colors*/
 
 /* unvisited link */

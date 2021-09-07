@@ -21,6 +21,11 @@
                 <p>
                     Last reset reason : {{rst_reason}}
                 </p>
+                {% if panic %}
+                <p class="panic">
+                    Rocket is panicking! Panic pattern : {{pat}}
+                </p>
+                {% end %}
 
                 <form action="/resets.html" method="POST">
                     <p>
