@@ -74,7 +74,7 @@ class NightKnight:
         NKSetting('clist_list',          self.get_clists,          None).add(self.cache)
 
         #add everything else
-        NKSetting('pattern',    self.get_patterns, self.set_pattern).add(self.cache)
+        NKSetting('pattern',    self.get_pattern,  self.set_pattern).add(self.cache)
         NKSetting('value',      self.get_value,    self.set_value  ).add(self.cache)
         NKSetting('brightness', self.get_brightness,    self.set_brightness  ).add(self.cache)
         NKSetting('color',      self.get_color,    self.set_color  ).add(self.cache)
@@ -180,6 +180,20 @@ class NightKnight:
         #set patterns and current pattern
         self._set('pattern_list',tuple(patterns))
         self._set('pattern',current)
+
+    def get_pattern(self):
+        self._command('get pat')
+        #get line
+        line=self.get_line()
+        #split line and strip whitespace
+        name, pat = [s.strip() for s in line.split(':')]
+        #check for error
+        if name == 'Error':
+            raise RuntimeError(f'problem with command \'{pat}\'')
+        elif name == 'LED pattern':
+            self._set('pattern', pat)
+        else:
+            raise RuntimeError(f'unexpected response to \'get\' command \'{line.strip()}\'')
 
     def set_flight_pattern(self,pat):
         self._command(f'fpat {pat}')
