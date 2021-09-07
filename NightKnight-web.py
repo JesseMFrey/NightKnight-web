@@ -68,7 +68,7 @@ class PatternHandler(tornado.web.RequestHandler):
         #set color list
         self.rocket.set('color_list', self.get_body_argument("clist"))
         #set pattern
-        self.rocket.set('pattern', self.get_body_argument("pattern"))
+        self.rocket.set('pattern', self.get_body_argument("pattern"),force=True)
 
         self.redirect('pattern.html',True)
 

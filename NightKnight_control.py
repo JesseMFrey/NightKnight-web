@@ -31,10 +31,13 @@ class NKSetting:
         if self.set_func is None:
             raise RuntimeError(f'{self.name} can not be set')
 
+        #get force argument
+        force = kwargs.pop('force',False)
+
         #check if we only have one input value
         single_val= len(args)==1 and not kwargs
 
-        if not single_val or self.value != args[0]:
+        if force or not single_val or self.value != args[0]:
             self.set_func(*args, **kwargs)
 
             if single_val:
