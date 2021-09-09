@@ -25,6 +25,14 @@ body {
     text-align: center;
 }
 
+
+/* Use a media query to add a breakpoint at 800px: */
+@media screen and (max-width: 800px) {
+  .left, .main, .right {
+    width: 100%; /* The width is 100%, when the viewport is 800px or smaller */
+  }
+}
+
 .column {
     float: left;
 }
@@ -53,6 +61,10 @@ body {
 
 .container:after {
     clear: both;
+}
+
+.description {
+    text-align: left;
 }
 
 /*

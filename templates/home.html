@@ -16,28 +16,27 @@
         </div>
         <div id="content" class="center">
             <div id="header">
-                <img class="header-img" src="{{ static_url("NK.png") }}" alt="Night Knight">
+                <img class="header-img" src="{{ static_url("NK_picture.jpg") }}" alt="Night Knight rocket on the ground at the field.">
             </div>
-            <div>
-    Lorem ipsum dolor sit amet,. Donec laoreet tincidunt sollicitudin pellentesque. Proin sagittis turpis semper purus. Phasellus ut consectetur mauris facilisis.. Donec vel ligula eu erat.
+            <div class="description">
+                <h2>Overview</h2>
+                <p>
+                The main goal of this project is to put LEDs on all parts of a rocket and use flight data to control them.
+                The rocket has 150 individually addressable RGB LEDs, 2 1~W white LEDs in the nosecone, and 3 1~W white LED's pointed at the parachute.
+                The RGB LEDs are divided to 3 strips aligned with the fins, with 11 LEDs under each of the three polycarbonate fins.
+                </p>
+                <p>
+                To deploy the parachute and track the flight, an AltusMetrum TeleMetrum is used.
+                This has more features that is realistically needed, but it has the <q>companion</q> interface which is used to get flight data.
+                </p>
+                <p>
+                To run the LEDs, a custom PCB with a MSP430F6779A microcontroller.
+                The microcontroller takes data from the TeleMetrum companion interface and uses that to determine what color and brightness to set the LEDs.
+                The microcontroller also takes commands over a serial interface to set settings and change the LEDs.
+                When not flying, these commands are used, by this webpage, to use the rocket as a lamp.
+                </p>
 
-    Sed dui lectus, varius eget. Nam sed magna urna congue. Praesent eget eleifend libero potenti.. Duis volutpat, dolor nec scelerisque. Phasellus in nisi diam pulvinar..
 
-    Donec mattis erat ac lorem. Vestibulum auctor augue ut enim. Curabitur ornare eleifend lectus, eget. Maecenas sodales, dui nec condimentum. Nam purus sapien, elementum nec.
-
-    Suspendisse ullamcorper egestas molestie elit. Mauris luctus ligula id nibh. Cras erat neque, dignissim in. In sapien nibh, tincidunt non. Sed sed mauris nibh feugiat.
-
-    Proin dui nibh, facilisis sed. Aliquam leo nulla, adipiscing sed. Proin scelerisque lectus rhoncus erat. Pellentesque aliquet ante sed nunc. Phasellus ut nibh justo Mauris.
-
-    Nunc fringilla, nunc in mattis. Mauris mollis risus sit amet. Quisque venenatis gravida dapibus amet. Sed ornare, dolor in rhoncus. Ut hendrerit mollis felis, sed.
-
-    Phasellus consectetur volutpat tortor at. Cras eu purus ipsum, quis. Morbi ullamcorper porta risus, ac. Integer semper convallis purus vitae. Vestibulum facilisis, neque nec mollis.
-
-    Suspendisse potenti ligula Nullam Donec. Nulla molestie magna nec nisi. Cras auctor, lectus nec semper. Quisque eget laoreet elit conubia. Donec viverra ultricies fringilla at,.
-
-    Phasellus aliquet lorem in quam. Proin eu nulla enim, sit. Aliquam erat volutpat lobortis.Cras volutpat,. Morbi in mollis libero urna.. Nulla luctus lacinia lectus, in.
-
-    Aliquam adipiscing odio non sem. Nulla ultrices consectetur augue, sed. In ante elit, ultricies sagittis. Praesent nec malesuada dolor tincidunt. Cras ut turpis velit nisl. 
             </div>
         </div>
     </div>
