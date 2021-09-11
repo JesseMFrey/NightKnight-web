@@ -17,8 +17,14 @@
             </div>
             <div>
                 <table class="data">
-                {% for k,v in adc_dat.items() %}
-                    <tr class="info"><td>{{k}}</td><td>=</td><td>{{f'{v[0]:.2f} {v[1]}'}}</td></tr>
+                {% for k,v in sorted (adc_dat.items()) %}
+                    {% if v[1] == 'C' %}
+                    <!--- format for temperature ---!>
+                        <tr class="info"><td>{{k}}</td><td>=</td><td>{{f'{v[0]:.1f}'}}&nbsp;&deg;C</td></tr>
+                    {% else %}
+                    <!--- format for everything else ---!>
+                        <tr class="info"><td>{{k}}</td><td>=</td><td>{{f'{v[0]:.2f}'}}&nbsp; {{v[1].strip()}}</td></tr>
+                    {% end %}
                 {% end %}
                 </table>
             </div>

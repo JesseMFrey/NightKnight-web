@@ -96,8 +96,8 @@ class ADCHandler(tornado.web.RequestHandler):
         adc_dat=self.rocket.read_ADC()
 
         #add some calculated readings
-        adc_dat['Battery Power'] = (adc_dat['Battery Voltage'][0]*adc_dat['Battery Current'][0],' W')
-        adc_dat['LED Power'] = (adc_dat['LED Voltage'][0]*adc_dat['LED Current'][0],' W')
+        adc_dat['Battery Power'] = (adc_dat['Battery Voltage'][0]*adc_dat['Battery Current'][0],'W')
+        adc_dat['LED Power'] = (adc_dat['LED Voltage'][0]*adc_dat['LED Current'][0],'W')
 
         self.render('ADC.html',pages=NK_pages,page='ADC',
                         adc_dat=adc_dat,
