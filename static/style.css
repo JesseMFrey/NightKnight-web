@@ -67,6 +67,28 @@ body {
     text-align: left;
 }
 
+table.data {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+tbody>tr.info>:nth-child(1){
+    text-align:right;
+}
+
+.data tbody>tr.info>:nth-child(3){
+    text-align:left;
+}
+
+.data tbody>tr.info>:nth-child(2){
+    width: 0.5em;
+    border: 0px;
+}
+
+
+td.heading {
+    text-align: center;
+}
 /*
 #actions {
     width: 150px;

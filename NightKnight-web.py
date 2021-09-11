@@ -369,9 +369,7 @@ class ServerHandler(tornado.web.RequestHandler):
                         ram_size = human_readable_size(mem_info.total),
                         ram_used = human_readable_size(mem_info.used),
                         cpu_freq = human_readable_frequency(freq_info.current),
-                        cpu_min = human_readable_frequency(freq_info.min),
-                        cpu_max = human_readable_frequency(freq_info.max),
-                        load_avg = load_avg,
+                        load_avg = [ f'{100*x:.1f}' for x in load_avg],
                    )
 
     def post(self):

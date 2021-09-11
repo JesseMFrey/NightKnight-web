@@ -19,45 +19,37 @@
                 <img class="header-img" src="{{ static_url("NK.png") }}" alt="Night Knight">
             </div>
             <div>
-                <h2>System Info</h2>
-                <p>
-                    Uptime : {{uptime}}
-                </p>
-                <p>
-                    System : {{system}}
-                </p>
-                <p>
-                    {{py_impl}} version : {{py_ver}}
-                </p>
-                <h2>Disk Info</h2>
-                <p>
-                    Size : {{disk_size}}
-                </p>
-                <p>
-                    Used : {{disk_used}}
-                </p>
-                <h2>CPU Info</h2>
-                <p>
-                    Machine : {{machine}}
-                </p>
-                <p>
-                    Total RAM : {{ram_size}}
-                </p>
-                <p>
-                    Used RAM : {{ram_used}}
-                </p>
-                <p>
-                CPU frequency : {{cpu_freq}} (Min : {{cpu_min}}, Max : {{cpu_max}})
-                </p>
-                <p>
-                    Load average (1 min) : {{load_avg[0]}}&nbsp;%
-                </p>
-                <p>
-                    Load average (5 min) : {{load_avg[1]}}&nbsp;%
-                </p>
-                <p>
-                    Load average (15 min) : {{load_avg[2]}}&nbsp;%
-                </p>
+                <table class="data">
+                    <tr>
+                        <td colspan="3" class="heading">
+                            <h2>System Info</h2>
+                        </td>
+                    </tr>
+                    <tr class="info"><td>Uptime</td><td>:</td><td>{{uptime}}</td><tr>
+                    <tr class="info"><td>System</td><td>:</td><td> {{system}}</td><tr>
+                    <tr class="info"><td>{{py_impl}} version</td><td>:</td><td>{{py_ver}}</td><tr>
+
+                    <tr>
+                        <td colspan="3" class="heading">
+                            <h2>Disk Info</h2>
+                        </td>
+                    </tr>
+                    <tr class="info"><td>Size</td><td>:</td><td>{{disk_size}}</td></tr>
+                    <tr class="info"><td>Used</td><td>:</td><td>{{disk_used}}</td></tr>
+
+                    <tr>
+                        <td colspan="3" class="heading">
+                            <h2>CPU Info</h2>
+                        </td>
+                    </tr>
+                    <tr class="info"><td>Machine</td><td>:</td><td> {{machine}}</td></tr>
+                    <tr class="info"><td>Total RAM </td><td>:</td><td>{{ram_size}}</td></tr>
+                    <tr class="info"><td>Used RAM </td><td>: </td><td>{{ram_used}}</td></tr>
+                    <tr class="info"><td>CPU frequency </td><td>:</td><td>{{cpu_freq}}</td></tr>
+                    <tr class="info"><td>Load average (1 min)</td><td>:</td><td>{{load_avg[0]}}&nbsp;%</td></tr>
+                    <tr class="info"><td>Load average (5 min)</td><td>:</td><td>{{load_avg[1]}}&nbsp;%</td></tr>
+                    <tr class="info"><td>Load average (15 min)</td><td>:</td><td>{{load_avg[2]}}&nbsp;%</td></tr>
+                </table>
             </div>
         </div>
     </div>
