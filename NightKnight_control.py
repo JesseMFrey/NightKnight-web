@@ -386,6 +386,12 @@ class NightKnight:
         #check for '>' char
         if(not line.startswith('>')):
             raise RuntimeError(f'Could not set NC \'{line.strip()}\'')
+        #update cache values
+        self._set('NC_mode',mode)
+        self._set('NC_val1',val1)
+        self._set('NC_val2',val2)
+        self._set('NC_t1',t1)
+        self._set('NC_t2',t2)
 
     def get_chute(self):
         self._command('chute')

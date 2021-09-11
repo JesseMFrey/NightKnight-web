@@ -44,7 +44,7 @@ class PatternHandler(tornado.web.RequestHandler):
         clists = self.rocket.get('clist_list')
         currentlst=self.rocket.get('color_list')
         nightlight = self.rocket.get('nightlight')
-
+        #check if nosecone is in pattern mode
         NC_pat = self.rocket.get('NC_mode') == 'pattern'
 
         self.render('pattern.html',pages=NK_pages,page='patterns',
@@ -60,7 +60,6 @@ class PatternHandler(tornado.web.RequestHandler):
                     )
 
     def post(self):
-        #self.set_header("Content-Type", "text/plain")
         #get color
         color=webcolors.hex_to_rgb(self.get_body_argument("color"))
         #get brightness
@@ -74,6 +73,18 @@ class PatternHandler(tornado.web.RequestHandler):
         self.rocket.set('color_list', self.get_body_argument("clist"))
         #set pattern
         self.rocket.set('pattern', self.get_body_argument("pattern"))
+        #get if we should set NC
+        setNC = self.get_body_argument("setNC",'np')
+        #get actual NC mode
+        actual_NC = self.rocket.get("NC_mode")
+
+        if actual_NC == 'pattern' and setNC == 'np':
+            #turn off nosecone
+            self.rocket.set('NC', 'static', 0, 0, 0, 0)
+        elif actual_NC != 'pattern' and setNC == 'pattern':
+            #set nosecone to pattern mode
+            self.rocket.set('NC', 'pattern', 0, 0, 0, 0)
+        #otherwise nosecone stays as is
 
         self.redirect('pattern.html',True)
 
