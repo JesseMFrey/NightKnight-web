@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A webpage to controle a LED rocket">
+    <title>Night Knight Control</title>
+    <link rel="stylesheet" href="{{ static_url("style.css") }}" type="text/css">
+</head>
+<body>
+    <div class="container">
+        <div id="actions" class="left">
+            {% for page in pages %}
+            <div class="menu"><a href="{{page}}.html" class="cmd">{{page}}</a></div>
+            {% end %}
+        </div>
+        <div id="content" class="center">
+            <div id="header">
+                <img class="header-img" src="{{ static_url("NK.png") }}" alt="Night Knight">
+            </div>
+            <div>
+                <h2>System Info</h2>
+                <p>
+                    Uptime : {{uptime}}
+                </p>
+                <p>
+                    System : {{system}}
+                </p>
+                <p>
+                    {{py_impl}} version : {{py_ver}}
+                </p>
+                <h2>Disk Info</h2>
+                <p>
+                    Size : {{disk_size}}
+                </p>
+                <p>
+                    Used : {{disk_used}}
+                </p>
+                <h2>CPU Info</h2>
+                <p>
+                    Machine : {{machine}}
+                </p>
+                <p>
+                    Total RAM : {{ram_size}}
+                </p>
+                <p>
+                    Used RAM : {{ram_used}}
+                </p>
+                <p>
+                CPU frequency : {{cpu_freq}} (Min : {{cpu_min}}, Max : {{cpu_max}})
+                </p>
+            </div>
+        </div>
+    </div>
+</body>

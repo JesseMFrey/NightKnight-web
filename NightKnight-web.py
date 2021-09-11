@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 
-import os.path
 import asyncio
+import humanize
 import json
+import os
+import platform
+import psutil
+import shutil
 import tornado.escape
 import tornado.ioloop
 import tornado.locks
@@ -10,6 +14,7 @@ import tornado.web
 import webcolors
 
 from NightKnight_control import NightKnight
+from datetime import timedelta
 
 from tornado.options import define, options, parse_command_line
 
@@ -18,7 +23,7 @@ define("debug", default=True, help="run in debug mode")
 define("serial_debug", default=False, help="Debug serial communications")
 define("serial", default='/dev/ttyUSB0', help="Serial port to use")
 
-NK_pages=('home','pattern','ADC','nosecone','resets','settings','flight_pattern')
+NK_pages=('home','pattern','ADC','nosecone','resets','settings','flight_pattern','server')
 
 class MainHandler(tornado.web.RequestHandler):
     def initialize(self, rocket):
@@ -300,6 +305,61 @@ class ParameterHandler(tornado.web.RequestHandler):
         if redir:
             self.redirect(redir)
 
+def human_readable_size(size, decimal_places=2):
+    for unit in ['B','kB','MB','GB','TB']:
+        if size < 1024.0:
+            break
+        size /= 1024.0
+    return f"{size:.{decimal_places}f} {unit}"
+
+def human_readable_frequency(freq):
+    step = 1e3
+    for unit in ['MHz','GHz','THz']:
+        if freq < step:
+            break
+        freq /= step
+    return f"{freq:.{0}f} {unit}"
+
+class ServerHandler(tornado.web.RequestHandler):
+    def initialize(self):
+        pass
+
+    def get(self):
+
+        #get uptime from proc
+        with open('/proc/uptime','r') as f:
+            #read file and convert to float
+            uptime_s = float(f.readline().split()[0])
+
+        uptime_str = humanize.naturaltime(timedelta(seconds=uptime_s))
+
+        uptime_str = uptime_str.removesuffix(' ago')
+
+        mem_info = psutil.virtual_memory()
+
+        disk_info = shutil.disk_usage('/')
+
+        freq_info = psutil.cpu_freq()
+
+        self.render("server.html", pages=NK_pages,page='server',
+                        uptime = uptime_str,
+                        machine = platform.machine(),
+                        system = platform.system(),
+                        py_impl = platform.python_implementation(),
+                        py_ver = platform.python_version(),
+                        disk_size = human_readable_size(disk_info.total),
+                        disk_used = human_readable_size(disk_info.used),
+                        cpu_usage = psutil.cpu_percent(),
+                        ram_size = human_readable_size(mem_info.total),
+                        ram_used = human_readable_size(mem_info.used),
+                        cpu_freq = human_readable_frequency(freq_info.current),
+                        cpu_min = human_readable_frequency(freq_info.min),
+                        cpu_max = human_readable_frequency(freq_info.max),
+                   )
+
+    def post(self):
+        pass
+
 
 
 def main():
@@ -322,6 +382,7 @@ def main():
                (r"/nightlight", NightlightHandler,{'rocket':rocket}),
                (r"/brightness", BrightnessHandler,{'rocket':rocket}),
                (r"/parameter", ParameterHandler,{'rocket':rocket}),
+               (r"/server.html", ServerHandler),
                ]
 
     app = tornado.web.Application(
