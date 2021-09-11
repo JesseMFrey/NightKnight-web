@@ -16,9 +16,11 @@
                 <img class="header-img" src="{{ static_url("NK.png") }}" alt="Night Knight">
             </div>
             <div>
+                <table class="data">
                 {% for k,v in adc_dat.items() %}
-                    {{k}} = {{f'{v[0]:.2f} {v[1]}'}} <br><br>
+                    <tr class="info"><td>{{k}}</td><td>=</td><td>{{f'{v[0]:.2f} {v[1]}'}}</td></tr>
                 {% end %}
+                </table>
             </div>
         </div>
     </div>
