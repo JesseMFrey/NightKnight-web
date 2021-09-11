@@ -352,6 +352,11 @@ class ServerHandler(tornado.web.RequestHandler):
 
         freq_info = psutil.cpu_freq()
 
+        try:
+            load_avg = os.getloadavg()
+        except OSError:
+            load_avg = [float('NaN')]*3
+
         self.render("server.html", pages=NK_pages,page='server',
                         uptime = uptime_str,
                         machine = platform.machine(),
@@ -366,6 +371,7 @@ class ServerHandler(tornado.web.RequestHandler):
                         cpu_freq = human_readable_frequency(freq_info.current),
                         cpu_min = human_readable_frequency(freq_info.min),
                         cpu_max = human_readable_frequency(freq_info.max),
+                        load_avg = load_avg,
                    )
 
     def post(self):
