@@ -29,6 +29,8 @@ class NKSetting:
             #run get function
             self.get_func(**kwargs)
         return self.value
+    def __repr__(self):
+        return f'{self.__class__.__name__}<name={repr(self.name)}, value = {repr(self.value)}>'
 
     def set(self, *args, **kwargs):
         if self.set_func is None:
