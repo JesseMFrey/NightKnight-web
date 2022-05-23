@@ -642,7 +642,8 @@ class NightKnight:
         mi=3;
 
         #check command responses for echo
-        while(cmd not in l):
+        #use re so that we can ignore a leading '>' but only match at the start
+        while(not re.match(f'>?{cmd}',l)):
             #get response
             l=self._textin.readline()
             
