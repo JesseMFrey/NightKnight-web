@@ -246,7 +246,7 @@ class AltitudeHandler(tornado.web.RequestHandler):
         #get units from post
         units = self.get_body_argument("units")
         #set altitude
-        self.rocket.set('altitude', float(altitude), units = units)
+        self.rocket.set('flight_altitude', float(altitude), units = units)
 
         self.redirect('flight_pattern.html')
 
