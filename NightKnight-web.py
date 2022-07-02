@@ -21,7 +21,7 @@ from datetime import timedelta
 from tornado.options import define, options, parse_command_line
 
 define("port", default=8888, help="run on the given port", type=int)
-define("debug", default=True, help="run in debug mode")
+define("debug", default=False, help="run in debug mode")
 define("serial_debug", default=False, help="Debug serial communications")
 define("serial", default='/dev/ttyUSB0', help="Serial port to use")
 
