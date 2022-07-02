@@ -6,6 +6,7 @@
     <meta name="description" content="A webpage to controle a LED rocket">
     <title>Night Knight Control - Brightness</title>
     <link rel="stylesheet" href="{{ static_url("style.css") }}" type="text/css">
+    <script src = "{{ static_url("patterns.js") }}"></script>
 </head>
 <body>
     <div class="container">
@@ -27,6 +28,12 @@
                                     >{{p}}</option>
                             {% end %}
                         </select>
+                    </p>
+                    <p>
+                    <output for="pat" id="pat_desc"></output>
+                    </p>
+                    <p>
+                    For more information on patterns, click to view <a href="pattern-descriptions.html">the documentation</a>.
                     </p>
 
                     <p>
@@ -130,5 +137,22 @@
             range.addEventListener('input', function (e) {
               output.value = e.target.value;
             });
+    </script>
+    <script>
+        var pat_output = document.getElementById('pat_desc');
+        var pattern = document.getElementById('pat');
+
+        function update_pattern_description(e) {
+            pat_name = pattern.options[ pattern.selectedIndex ].value;
+
+            pat_output.value = NightKnight_patterns[pat_name].short_description;
+
+        }
+
+        //call function to set description on load
+        update_pattern_description();
+        
+        //add listner for pattern change
+        pattern.addEventListener('change', update_pattern_description);
     </script>
 </body>

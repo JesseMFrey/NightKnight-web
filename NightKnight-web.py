@@ -4,12 +4,14 @@ import asyncio
 import humanize
 import json
 import os
+import patterns
 import platform
 import psutil
 import shutil
 import tornado.escape
 import tornado.ioloop
 import tornado.locks
+import tornado.template
 import tornado.web
 import webcolors
 
@@ -22,6 +24,9 @@ define("port", default=8888, help="run on the given port", type=int)
 define("debug", default=True, help="run in debug mode")
 define("serial_debug", default=False, help="Debug serial communications")
 define("serial", default='/dev/ttyUSB0', help="Serial port to use")
+
+template_path=os.path.join(os.path.dirname(__file__), "templates")
+static_path=os.path.join(os.path.dirname(__file__), "static")
 
 NK_pages=('home','pattern','ADC','nosecone','resets','settings','flight_pattern','server')
 
@@ -88,6 +93,11 @@ class PatternHandler(tornado.web.RequestHandler):
 
         self.redirect('pattern.html',True)
 
+class PatternDescHandler(tornado.web.RequestHandler):
+
+    def get(self):
+
+        self.render('pattern_descriptions.html',pages=NK_pages,page='pattern_descriptions',patterns=patterns.info)
 
 class ADCHandler(tornado.web.RequestHandler):
     def initialize(self, rocket):
@@ -375,10 +385,24 @@ class ServerHandler(tornado.web.RequestHandler):
     def post(self):
         pass
 
+def gen_pat_js():
+    print('Loading js template')
+    loader = tornado.template.Loader(template_path)
+
+    pat_js = loader.load("patterns.js").generate(patterns=patterns.info)
+
+    js_path = os.path.join(static_path, 'patterns.js')
+
+    with open(js_path, 'w') as js_file:
+        print(f'Writing "{js_path}"')
+        js_file.write(pat_js.decode('utf-8'))
+    
 
 
 def main():
     parse_command_line()
+
+    gen_pat_js()
 
     rocket=NightKnight(options.serial,debug=options.serial_debug)
 
@@ -386,6 +410,9 @@ def main():
                (r"/home\.html", MainHandler,{'rocket':rocket}),
                (r"/index\.html", MainHandler,{'rocket':rocket}),
                (r"/pattern\.html", PatternHandler,{'rocket':rocket}),
+               (r"/pattern_descriptions\.html", PatternDescHandler),
+               (r"/pattern-descriptions\.html", PatternDescHandler),
+               (r"/pattern-descriptions", PatternDescHandler),
                (r"/ADC\.html", ADCHandler,{'rocket':rocket}),
                (r"/nosecone\.html", NoseconeHandler,{'rocket':rocket}),
                (r"/chute", ChuteHandler,{'rocket':rocket}),
@@ -402,8 +429,8 @@ def main():
 
     app = tornado.web.Application(
         handlers,
-        template_path=os.path.join(os.path.dirname(__file__), "templates"),
-        static_path=os.path.join(os.path.dirname(__file__), "static"),
+        template_path=template_path,
+        static_path=static_path,
         debug=options.debug,
     )
     app.listen(options.port)

@@ -1,0 +1,31 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A webpage to controle a LED rocket">
+    <title>Night Knight Control - Brightness</title>
+    <link rel="stylesheet" href="{{ static_url("style.css") }}" type="text/css">
+</head>
+<body>
+    <div class="container">
+        {% include menu.html %}
+        <div id="content" class="center">
+            <div id="header">
+                <img class="header-img" src="{{ static_url("NK.png") }}" alt="Night Knight">
+            </div>
+            <div>
+                <h2>Pattern Descriptions</h2>
+                    {% for pn,p in patterns.items() %}
+                        <section id="{{ p['tag'] }}">
+                            <h3>{{ p['name'] }} Pattern ({{ pn }})</h3>
+                            <p>
+                            {{ p['long_description'] }}
+                            </p>
+                        </section>
+                    {% end %}
+            </div>
+        </div>
+    </div>
+</body>
