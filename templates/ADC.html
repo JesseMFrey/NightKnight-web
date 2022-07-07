@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="A webpage to controle a LED rocket">
     <title>Night Knight Control - ADC</title>
-    <meta http-equiv="refresh" content="5" >
     <link rel="stylesheet" href="{{ static_url("style.css") }}" type="text/css">
+    <script src = "{{ static_url("jquery-3.6.0.min.js") }}"></script>
 </head>
 <body>
     <div class="container">
@@ -17,17 +17,44 @@
             </div>
             <div>
                 <table class="data">
-                {% for k,v in sorted (adc_dat.items()) %}
-                    {% if v[1] == 'C' %}
-                    <!--- format for temperature ---!>
-                        <tr class="info"><td>{{k}}</td><td>=</td><td>{{f'{v[0]:.1f}'}}&nbsp;&deg;C</td></tr>
-                    {% else %}
-                    <!--- format for everything else ---!>
-                        <tr class="info"><td>{{k}}</td><td>=</td><td>{{f'{v[0]:.2f}'}}&nbsp; {{v[1].strip()}}</td></tr>
-                    {% end %}
-                {% end %}
+                    <tr class="info"><td>Battery Current</td>  <td>=</td> <td id="Battery-Current"></td></tr>
+                    <tr class="info"><td>Battery Power</td>    <td>=</td> <td id="Battery-Power"></td></tr>
+                    <tr class="info"><td>Battery Voltage</td>  <td>=</td> <td id="Battery-Voltage"></td></tr>
+                    <tr class="info"><td>LED Current</td>      <td>=</td> <td id="LED-Current"></td></tr>
+                    <tr class="info"><td>LED Power</td>        <td>=</td> <td id="LED-Power"></td></tr>
+                    <tr class="info"><td>LED Voltage</td>      <td>=</td> <td id="LED-Voltage"></td></tr>
+                    <tr class="info"><td>MSP Voltage</td>      <td>=</td> <td id="MSP-Voltage"></td></tr>
+                    <tr class="info"><td>Regulator Temp</td>   <td>=</td> <td id="Regulator-Temp"></td></tr>
                 </table>
             </div>
         </div>
     </div>
+
+    <script type="text/javascript">
+        setInterval(function() {
+            $.getJSON("/status",function(data){
+                for (val in data) {
+                    //ID for destination, replace space with dash
+                    id = val.replaceAll(' ', '-');
+
+                    elm = document.getElementById(id);
+                    if( elm!=null ){
+                        if(data[val][1] == 'C'){
+                            num_str = data[val][0].toFixed(2);
+                        }
+                        else
+                        {
+                            num_str = data[val][0].toFixed(1);
+                        }
+                        
+                        elm.innerHTML = num_str + '&nbsp; ' + data[val][1];
+                    }
+                }
+
+                document.getElementById('Battery-Power').innerHTML = (data['Battery Voltage'][0]*data['Battery Current'][0]).toFixed(1) + '&nbsp; W';
+                document.getElementById('LED-Power').innerHTML = (data['LED Voltage'][0]*data['LED Current'][0]).toFixed(1) + '&nbsp; W';
+
+            });
+        }, 1000);
+    </script>
 </body>

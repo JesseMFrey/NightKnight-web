@@ -103,15 +103,27 @@ class ADCHandler(tornado.web.RequestHandler):
     def initialize(self, rocket):
         self.rocket=rocket
     def get(self):
-        adc_dat=self.rocket.read_ADC()
+        self.render('ADC.html',pages=NK_pages,page='ADC')
 
-        #add some calculated readings
-        adc_dat['Battery Power'] = (adc_dat['Battery Voltage'][0]*adc_dat['Battery Current'][0],'W')
-        adc_dat['LED Power'] = (adc_dat['LED Voltage'][0]*adc_dat['LED Current'][0],'W')
+class StatusHandler(tornado.web.RequestHandler):
+    def initialize(self, rocket):
+        self.rocket = rocket
 
-        self.render('ADC.html',pages=NK_pages,page='ADC',
-                        adc_dat=adc_dat,
-                   )
+    def set_default_headers(self):
+        #status is retunded with json
+        self.set_header("Content-Type", 'application/json')
+
+    def get(self):
+        stat_type = self.get_argument('type', default='adc')
+
+        if stat_type == 'adc':
+            adc_dat=self.rocket.read_ADC()
+
+            resp = json.dumps(adc_dat)
+        else:
+            raise ValueError(f'Unknown status type : "{stat_type}"')
+
+        self.write(resp)
 
 class NoseconeHandler(tornado.web.RequestHandler):
     def initialize(self, rocket):
@@ -417,6 +429,7 @@ def main():
                (r"/nosecone\.html", NoseconeHandler,{'rocket':rocket}),
                (r"/chute", ChuteHandler,{'rocket':rocket}),
                (r"/simulate", SimulationHandler,{'rocket':rocket}),
+               (r"/status", StatusHandler,{'rocket':rocket}),
                (r"/altitude", AltitudeHandler,{'rocket':rocket}),
                (r"/resets\.html", ResetsHandler,{'rocket':rocket}),
                (r"/settings\.html", SettingsHandler,{'rocket':rocket}),
