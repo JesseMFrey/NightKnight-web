@@ -449,7 +449,7 @@ class NightKnight:
         while(line and not line.startswith('>')):
             #strip spaces
             name,value=line.strip().split(':')
-            print(f'Name : \'{name}\' Value : \'{value}\'')
+            #print(f'Name : \'{name}\' Value : \'{value}\'')
             #TODO : make this a bit more robust
             val,unit=value.split()
             value=float(val)
