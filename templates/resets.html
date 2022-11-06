@@ -15,17 +15,18 @@
                 <img class="header-img" src="{{ static_url("NK.png") }}" alt="Night Knight">
             </div>
             <div>
+                {% if panic is not None %}
+                    <div class="panic">
+                        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                            {{ panic }}
+                        </div> 
+                {% end %}
                 <p>
                     Number of resets Since power on : {{rst_num}}
                 </p>
                 <p>
                     Last reset reason : {{rst_reason}}
                 </p>
-                {% if panic %}
-                <p class="panic">
-                    Rocket is panicking! Panic pattern : {{pat}}
-                </p>
-                {% end %}
 
                 <form action="/resets.html" method="POST">
                     <p>

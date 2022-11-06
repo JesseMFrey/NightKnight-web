@@ -15,6 +15,24 @@
             <div id="header">
                 <img class="header-img" src="{{ static_url("NK.png") }}" alt="Night Knight">
             </div>
+            {% if error is not None %}
+                <div class="alert">
+                    <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                        Error : {{ error }}
+                    </div> 
+            {% end %}
+            {% if r_err is not None %}
+                <div class="alert">
+                    <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                        Error while reading pattern data : {{ r_err }}
+                    </div> 
+            {% end %}
+            {% if panic is not None %}
+                <div class="panic">
+                    <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                        {{ panic }}
+                    </div> 
+            {% end %}
             <div>
                 <form action="/pattern.html" method="POST">
                     <p>

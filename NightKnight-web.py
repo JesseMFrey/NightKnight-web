@@ -15,7 +15,7 @@ import tornado.template
 import tornado.web
 import webcolors
 
-from NightKnight_control import NightKnight
+from NightKnight_control import NightKnight,CommandError
 from datetime import timedelta
 
 from tornado.options import define, options, parse_command_line
@@ -30,6 +30,19 @@ static_path=os.path.join(os.path.dirname(__file__), "static")
 
 NK_pages=('home','pattern','ADC','nosecone','resets','settings','flight_pattern','server')
 
+panic_patterns = {
+        'ppanic' : 'Settings caused power panic, try reducing brightness',
+        'mpanic' : 'Altimiter mode panic',
+        'rpanic' : 'Unexpected reset caused panic.',
+        'ptpanic' : 'Invalid pattern number',
+        }
+
+def get_panic_str(pattern):
+    if pattern in panic_patterns:
+        return  panic_patterns[pattern]
+    else:
+        return None
+
 class MainHandler(tornado.web.RequestHandler):
     def initialize(self, rocket):
         self.rocket=rocket
@@ -41,16 +54,36 @@ class PatternHandler(tornado.web.RequestHandler):
         self.rocket=rocket
     def get(self):
         
-        patterns = self.rocket.get('pattern_list')
-        current_pat = self.rocket.get('pattern',force=True)
-        val = self.rocket.get('value')
-        color = self.rocket.get('color')
-        brt = self.rocket.get('brightness')
-        clists = self.rocket.get('clist_list')
-        currentlst=self.rocket.get('color_list')
-        nightlight = self.rocket.get('nightlight')
-        #check if nosecone is in pattern mode
-        NC_pat = self.rocket.get('NC_mode') == 'pattern'
+        #initialize with default values
+        patterns = None
+        current_pat = None
+        val = None
+        color = None
+        brt = None
+        clists = None
+        currentlst=None
+        nightlight = None
+        NC_pat = None
+        read_err = None
+
+        #get error message if it exists
+        err_msg  = self.get_argument('error', default=None)
+
+        try:
+            patterns = self.rocket.get('pattern_list')
+            current_pat = self.rocket.get('pattern',force=True)
+            val = self.rocket.get('value')
+            color = self.rocket.get('color')
+            brt = self.rocket.get('brightness')
+            clists = self.rocket.get('clist_list')
+            currentlst=self.rocket.get('color_list')
+            nightlight = self.rocket.get('nightlight')
+            #check if nosecone is in pattern mode
+            NC_pat = self.rocket.get('NC_mode') == 'pattern'
+        except (CommandError,IOError,OSError) as e:
+            read_err = str(e)
+
+        panic_str = get_panic_str(current_pat)
 
         self.render('pattern.html',pages=NK_pages,page='patterns',
                         patterns=patterns,
@@ -62,6 +95,9 @@ class PatternHandler(tornado.web.RequestHandler):
                         clists=clists,
                         currentlst=currentlst,
                         nightlight = nightlight,
+                        error=err_msg,
+                        r_err=read_err,
+                        panic=panic_str,
                     )
 
     def post(self):
@@ -72,26 +108,32 @@ class PatternHandler(tornado.web.RequestHandler):
         #set brigtness and color
         self.rocket.set('color', color)
         self.rocket.set('brightness', brt)
-        #set value
-        self.rocket.set('value',int(self.get_body_argument("val")))
-        #set color list
-        self.rocket.set('color_list', self.get_body_argument("clist"))
-        #set pattern
-        self.rocket.set('pattern', self.get_body_argument("pattern"))
         #get if we should set NC
         setNC = self.get_body_argument("setNC",'np')
-        #get actual NC mode
-        actual_NC = self.rocket.get("NC_mode")
 
-        if actual_NC == 'pattern' and setNC == 'np':
-            #turn off nosecone
-            self.rocket.set('NC', 'static', 0, 0, 0, 0)
-        elif actual_NC != 'pattern' and setNC == 'pattern':
-            #set nosecone to pattern mode
-            self.rocket.set('NC', 'pattern', 0, 0, 0, 0)
-        #otherwise nosecone stays as is
+        try:
+            #set value
+            self.rocket.set('value',int(self.get_body_argument("val")))
+            #set color list
+            self.rocket.set('color_list', self.get_body_argument("clist"))
+            #set pattern
+            self.rocket.set('pattern', self.get_body_argument("pattern"))
+            #get actual NC mode
+            actual_NC = self.rocket.get("NC_mode")
 
-        self.redirect('pattern.html',True)
+            if actual_NC == 'pattern' and setNC == 'np':
+                #turn off nosecone
+                self.rocket.set('NC', 'static', 0, 0, 0, 0)
+            elif actual_NC != 'pattern' and setNC == 'pattern':
+                #set nosecone to pattern mode
+                self.rocket.set('NC', 'pattern', 0, 0, 0, 0)
+            #otherwise nosecone stays as is
+        except (CommandError,IOError,OSError) as e:
+            self.redirect('pattern.html?error={e}')
+            #we are done here
+            return
+
+        self.redirect('pattern.html')
 
 class PatternDescHandler(tornado.web.RequestHandler):
 
@@ -181,14 +223,11 @@ class ResetsHandler(tornado.web.RequestHandler):
         current_pat = self.rocket.get('pattern',force=True)
 
 
-        if 'panic' in current_pat:
-            is_panicking = True
-        else:
-            is_panicking = False
+        panic_str = get_panic_str(current_pat)
 
         self.render('resets.html',pages=NK_pages,page='resets',
                     rst_reason=reason,rst_num=num,
-                    panic=is_panicking, pat = current_pat)
+                    panic=panic_str, pat = current_pat)
     def post(self):
         #get reset type
         rtype = self.get_body_argument("reset_type")
