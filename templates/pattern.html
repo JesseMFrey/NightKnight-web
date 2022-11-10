@@ -90,12 +90,14 @@
                     <p>
                         <label for="clist">Color List :</label>
                         <select name="clist" id="clist" title="Color list to use for pattern">
-                            {% for l in clists %}
-                            <option value="{{l}}"
-                                    {% if l==currentlst %}
-                                    selected=True
-                                    {% end %}
-                                    >{{l}}</option>
+                            {% if clists %}
+                                {% for l in clists %}
+                                <option value="{{l}}"
+                                        {% if l==currentlst %}
+                                        selected=True
+                                        {% end %}
+                                        >{{l}}</option>
+                                {% end %}
                             {% end %}
                         </select>
                     </p>

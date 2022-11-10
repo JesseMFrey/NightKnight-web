@@ -58,7 +58,7 @@ class PatternHandler(tornado.web.RequestHandler):
         patterns = None
         current_pat = None
         val = None
-        color = None
+        color = [0, 0, 0]
         brt = None
         clists = None
         currentlst=None
