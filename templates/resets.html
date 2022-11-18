@@ -15,6 +15,18 @@
                 <img class="header-img" src="{{ static_url("NK.png") }}" alt="Night Knight">
             </div>
             <div>
+                {% if r_error is not None %}
+                    <div class="alert">
+                        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                            Error reading status : {{ r_error }}
+                        </div> 
+                {% end %}
+                {% if w_error is not None %}
+                    <div class="alert">
+                        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                            Error sending reset command : {{ w_error }}
+                        </div> 
+                {% end %}
                 {% if panic is not None %}
                     <div class="panic">
                         <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>

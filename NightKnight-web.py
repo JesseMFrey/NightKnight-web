@@ -105,13 +105,13 @@ class PatternHandler(tornado.web.RequestHandler):
         color=webcolors.hex_to_rgb(self.get_body_argument("color"))
         #get brightness
         brt=self.get_body_argument("brt")
-        #set brigtness and color
-        self.rocket.set('color', color)
-        self.rocket.set('brightness', brt)
         #get if we should set NC
         setNC = self.get_body_argument("setNC",'np')
 
         try:
+            #set brigtness and color
+            self.rocket.set('color', color)
+            self.rocket.set('brightness', brt)
             #set value
             self.rocket.set('value',int(self.get_body_argument("val")))
             #set color list
@@ -129,7 +129,7 @@ class PatternHandler(tornado.web.RequestHandler):
                 self.rocket.set('NC', 'pattern', 0, 0, 0, 0)
             #otherwise nosecone stays as is
         except (CommandError,IOError,OSError) as e:
-            self.redirect('pattern.html?error={e}')
+            self.redirect(f'pattern.html?error={e}')
             #we are done here
             return
 
@@ -159,9 +159,16 @@ class StatusHandler(tornado.web.RequestHandler):
         stat_type = self.get_argument('type', default='adc')
 
         if stat_type == 'adc':
-            adc_dat=self.rocket.read_ADC()
+            adc_dat = {}
+            err = ''
+            try:
+                adc_dat=self.rocket.read_ADC()
+            except (CommandError,IOError,OSError) as e:
+                err = str(e)
 
+            adc_dat['error'] = err
             resp = json.dumps(adc_dat)
+
         else:
             raise ValueError(f'Unknown status type : "{stat_type}"')
 
@@ -172,25 +179,40 @@ class NoseconeHandler(tornado.web.RequestHandler):
         self.rocket=rocket
     def get(self):
         info = {}
-        #get values and stor in dict
-        for key in self.rocket.get_keys():
-            if key.startswith('NC_') or key.startswith('chute_'):
-                #copy value
-                info[key] = self.rocket.get(key)
+        cp = None
+        np = None
+        read_err = None
+        write_err  = self.get_argument('error', default=None)
+        try:
+            #get values and stor in dict
+            for key in self.rocket.get_keys():
+                if key.startswith('NC_') or key.startswith('chute_'):
+                    #copy value
+                    info[key] = self.rocket.get(key)
+            cp = self.rocket.chute_modes
+            np = self.rocket.NC_modes
+        except (CommandError,IOError,OSError) as e:
+            read_err = str(e)
 
         self.render('nosecone.html',pages=NK_pages,page='nosecone',
                         info = info,
-                        chute_patterns=self.rocket.chute_modes,
-                        nc_patterns=self.rocket.NC_modes,
+                        chute_patterns=cp,
+                        nc_patterns=np,
+                        r_error=read_err,
+                        w_error=write_err,
                     )
 
     def post(self):
         #get values
-        mode=self.get_body_argument("mode")
-        val1=int(self.get_body_argument("val1"))
-        val2=int(self.get_body_argument("val2"))
-        t1  =int(self.get_body_argument("t1"))
-        t2  =int(self.get_body_argument("t2"))
+        try:
+            mode=self.get_body_argument("mode")
+            val1=int(self.get_body_argument("val1"))
+            val2=int(self.get_body_argument("val2"))
+            t1  =int(self.get_body_argument("t1"))
+            t2  =int(self.get_body_argument("t2"))
+        except tornado.web.MissingArgumentError as e:
+            self.redirect(f'nosecone.html?error={e}')
+            return
         #set chute
         self.rocket.set('NC', mode, val1, val2, t1, t2)
 
@@ -204,11 +226,15 @@ class ChuteHandler(tornado.web.RequestHandler):
 
     def post(self):
         #get values
-        mode=self.get_body_argument("mode")
-        val1=int(self.get_body_argument("val1"))
-        val2=int(self.get_body_argument("val2"))
-        t1  =int(self.get_body_argument("t1"))
-        t2  =int(self.get_body_argument("t2"))
+        try:
+            mode=self.get_body_argument("mode")
+            val1=int(self.get_body_argument("val1"))
+            val2=int(self.get_body_argument("val2"))
+            t1  =int(self.get_body_argument("t1"))
+            t2  =int(self.get_body_argument("t2"))
+        except tornado.web.MissingArgumentError as e:
+            self.redirect(f'nosecone.html?error={e}')
+            return
         #set chute
         self.rocket.set('chute', mode, val1, val2, t1, t2)
 
@@ -219,20 +245,35 @@ class ResetsHandler(tornado.web.RequestHandler):
         self.rocket=rocket
     def get(self):
 
-        num, reason = self.rocket.get_resets()
-        current_pat = self.rocket.get('pattern',force=True)
+        num = None
+        reason = ''
+        current_pat = ''
+        err_str = None
+        try:
+            num, reason = self.rocket.get_resets()
+            current_pat = self.rocket.get('pattern',force=True)
+        except (CommandError,IOError,OSError) as e:
+            err_str = str(e)
 
+        err_arg = self.get_argument('error', None)
 
         panic_str = get_panic_str(current_pat)
 
         self.render('resets.html',pages=NK_pages,page='resets',
                     rst_reason=reason,rst_num=num,
-                    panic=panic_str, pat = current_pat)
+                    panic=panic_str, pat = current_pat,
+                    r_error=err_str,
+                    w_error=err_arg,
+                    )
     def post(self):
         #get reset type
         rtype = self.get_body_argument("reset_type")
 
-        self.rocket.reset(rtype)
+        try:
+            self.rocket.reset(rtype)
+        except (CommandError,IOError,OSError) as e:
+            self.redirect(f'resets.html?error={e}')
+            return
 
         self.redirect('resets.html')
 
@@ -241,22 +282,38 @@ class SettingsHandler(tornado.web.RequestHandler):
     def initialize(self, rocket):
         self.rocket=rocket
     def get(self):
-        ram   = self.rocket.get('ram_set')
-        flash = self.rocket.get('flash_set')
+        err_str = None
+        flash = {}
+        ram = {}
+        try:
+            ram   = self.rocket.get('ram_set')
+            flash = self.rocket.get('flash_set')
+        except (CommandError,IOError,OSError) as e:
+            err_str = str(e)
+
+        err_arg = self.get_argument('error', None)
+
         self.render('settings.html',pages=NK_pages,page='settings',
                         flash_set=flash,
                         ram_set=ram,
+                        r_error=err_str,
+                        w_error=err_arg,
                    )
+
     def post(self):
         #get action
         action = self.get_body_argument("action")
 
-        if action == 'save':
-            self.rocket.write_settings()
-        elif action == 'clear':
-            self.rocket.clear_settings()
-        else:
-            raise ValueError(f'Unknown action \'{action}\'')
+        try:
+            if action == 'save':
+                self.rocket.write_settings()
+            elif action == 'clear':
+                self.rocket.clear_settings()
+            else:
+                raise ValueError(f'Unknown action \'{action}\'')
+        except (ValueError,CommandError,IOError,OSError) as e:
+            self.redirect(f'settings.html?error={e}')
+            return
 
         self.redirect('settings.html')
 
@@ -264,21 +321,36 @@ class FlightPatternHandler(tornado.web.RequestHandler):
     def initialize(self, rocket):
         self.rocket=rocket
     def get(self):
+        err_str = None
+        patterns = []
+        current = None
+        altitude = None
         #get flight pattern info
-        patterns = self.rocket.get('flight_pattern_list')
-        current = self.rocket.get('flight_pattern')
-        #get expected altitude
-        altitude = self.rocket.get('flight_altitude')
+        try:
+            patterns = self.rocket.get('flight_pattern_list')
+            current = self.rocket.get('flight_pattern')
+            #get expected altitude
+            altitude = self.rocket.get('flight_altitude')
+        except (CommandError,IOError,OSError) as e:
+            err_str = str(e)
+
+        err_arg = self.get_argument('error',None)
 
         self.render('flight_pattern.html',pages=NK_pages,page='flight_pattern',
                         patterns=patterns,
                         pat=current,
                         altitude = altitude,
+                        r_error=err_str,
+                        w_error=err_arg,
                     )
 
     def post(self):
         #set pattern
-        self.rocket.set('flight_pattern',self.get_body_argument("pattern"))
+        try:
+            self.rocket.set('flight_pattern',self.get_body_argument("pattern"))
+        except (CommandError,IOError,OSError,ValueError,tornado.web.MissingArgumentError) as e:
+            self.redirect(f'flight_pattern.html?error={e}')
+            return
 
         self.redirect('flight_pattern.html')
 
@@ -290,7 +362,11 @@ class SimulationHandler(tornado.web.RequestHandler):
 
     def post(self):
         #start simulation
-        self.rocket.simulate()
+        try:
+            self.rocket.simulate()
+        except (CommandError,IOError,OSError) as e:
+            self.redirect(f'flight_pattern.html?error={e}')
+            return
 
         self.redirect('flight_pattern.html')
 
@@ -302,12 +378,23 @@ class AltitudeHandler(tornado.web.RequestHandler):
         self.redirect('flight_pattern.html')
 
     def post(self):
-        #get altitude from post
-        altitude = self.get_body_argument("altitude")
-        #get units from post
-        units = self.get_body_argument("units")
+        try:
+            #get altitude from post
+            altitude = self.get_body_argument("altitude")
+            #convert to float for calculations
+            altitude = float(altitude)
+            #get units from post
+            units = self.get_body_argument("units")
+        except (ValueError,tornado.web.MissingArgumentError) as e:
+            self.redirect(f'flight_pattern.html?error=invalid request')
+            return
+
         #set altitude
-        self.rocket.set('flight_altitude', float(altitude), units = units)
+        try:
+            self.rocket.set('flight_altitude', altitude, units = units)
+        except (CommandError,IOError,OSError) as e:
+            self.redirect(f'flight_pattern.html?error={e}')
+            return
 
         self.redirect('flight_pattern.html')
 
@@ -321,10 +408,24 @@ class NightlightHandler(tornado.web.RequestHandler):
     def post(self):
         #get value from post
         val = self.get_body_argument("value")
-        #get units from post
-        self.rocket.set('nightlight', val)
+        err_str=''
+        try:
+            #get units from post
+            self.rocket.set('nightlight', val)
+        except (CommandError,IOError,OSError) as e:
+            err_str = str(e)
+
 
         redir = self.get_body_argument("redirect", default = '')
+
+        if err_str and redir:
+            err_arg = f'error={err_str}'
+            if '?' in redir:
+               #arguments exist, add seperator
+               redir += '&' + err_arg 
+            else:
+                #no arguments, add start of arguments
+                redir += '?' + err_arg 
 
         if redir:
             self.redirect(redir)

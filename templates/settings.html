@@ -16,6 +16,18 @@
                 <img class="header-img" src="{{ static_url("NK.png") }}" alt="Night Knight">
                 </h1>
             </div>
+            {% if r_error is not None %}
+                <div class="alert">
+                    <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                        Error while reading : {{ r_error }}
+                    </div> 
+            {% end %}
+            {% if w_error is not None %}
+                <div class="alert">
+                    <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                        Error while writing : {{ w_error }}
+                    </div> 
+            {% end %}
             {% for sn,s in (('RAM',ram_set),('Flash',flash_set)) %}
                 <div>
                 <h2>{{sn + ' Settings'}}</h2>

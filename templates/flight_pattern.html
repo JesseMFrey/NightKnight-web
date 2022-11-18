@@ -14,12 +14,24 @@
             <div id="header">
                 <img class="header-img" src="{{ static_url("NK.png") }}" alt="Night Knight">
             </div>
+            {% if r_error is not None %}
+                <div class="alert">
+                    <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                        Error reading settings : {{ r_error }}
+                    </div> 
+            {% end %}
+            {% if w_error is not None %}
+                <div class="alert">
+                    <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                        Error writing settings : {{ w_error }}
+                    </div> 
+            {% end %}
             <div>
                 <form action="/flight_pattern.html" method="POST">
                     <p>
                     <label for="pat">Flight Pattern :</label>
                     <select name="pattern" id="pat"
-                        title="Set of LED patterns to use during the various phases of flight">
+                        title="Set of LED patterns to use during the various phases of flight" required>
                         {% for p in patterns %}
                             <option value="{{p}}"
                                     {% if p==pat %}
@@ -38,10 +50,10 @@
                     <p>
                         <label for="alt">Expected Altitude :</label>
                         <input name="altitude" id="alt" type="number" value="{{altitude}}" style="width: 6.3em"
-                               title="Expected altitude of the flight. Used by some patterns to break the flight into sections.">
+                               title="Expected altitude of the flight. Used by some patterns to break the flight into sections." required>
                         <label for="units">Units</label>
                         <select name="units" id="units"
-                            title="Units for altitude. Values are stored in meters">
+                            title="Units for altitude. Values are stored in meters" required>
                             <option value="m" selected=True>m</option>
                             <option value="ft">ft</option>
                         </select>

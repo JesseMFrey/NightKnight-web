@@ -38,12 +38,14 @@
                     <p>
                         <label for="pat">Pattern :</label>
                         <select name="pattern" id="pat" title="LED pattern to use">
-                            {% for p in patterns %}
-                            <option value="{{p}}"
-                                    {% if p==pat %}
-                                    selected=True
-                                    {% end %}
-                                    >{{p}}</option>
+                            {% if patterns %}
+                                {% for p in patterns %}
+                                <option value="{{p}}"
+                                        {% if p==pat %}
+                                        selected=True
+                                        {% end %}
+                                        >{{p}}</option>
+                                {% end %}
                             {% end %}
                         </select>
                     </p>
