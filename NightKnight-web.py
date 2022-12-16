@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import asyncio
+import datetime
 import humanize
 import json
 import os
@@ -28,7 +29,7 @@ define("serial", default='/dev/ttyS4', help="Serial port to use")
 template_path=os.path.join(os.path.dirname(__file__), "templates")
 static_path=os.path.join(os.path.dirname(__file__), "static")
 
-NK_pages=('home','pattern','ADC','nosecone','resets','settings','flight_pattern','server')
+NK_pages=('home','pattern','ADC','nosecone','resets','settings','flight_pattern','server','schedule')
 
 panic_patterns = {
         'ppanic' : 'Settings caused power panic, try reducing brightness',
@@ -537,6 +538,29 @@ class ServerHandler(tornado.web.RequestHandler):
     def post(self):
         pass
 
+class ScheduleHandler(tornado.web.RequestHandler):
+    def initialize(self, scheduler):
+        self.scheduler = scheduler
+
+    def get(self):
+        self.render('schedule.html', pages=NK_pages, page='schedule',
+                    d_start=self.scheduler.schedule_settings['day_start'].strftime('%H:%M'),
+                    d_end=self.scheduler.schedule_settings['day_end'].strftime('%H:%M'),
+                    )
+
+    def post(self):
+        day_start = self.get_body_argument('start')
+        day_end   = self.get_body_argument('end')
+
+        self.scheduler.schedule_settings['day_start'] = datetime.datetime.strptime(day_start, '%H:%M').time()
+        self.scheduler.schedule_settings['day_end'] = datetime.datetime.strptime(day_end, '%H:%M').time()
+
+        #force update with new times
+        self.scheduler.schedule_update()
+
+        self.redirect('schedule.html')
+
+
 def gen_pat_js():
     print('Loading js template')
     loader = tornado.template.Loader(template_path)
@@ -550,6 +574,38 @@ def gen_pat_js():
         js_file.write(pat_js.decode('utf-8'))
     
 
+class LightScheduler:
+
+    def __init__(self,rocket):
+        self.schedule_settings = {
+                                'day_start' : datetime.time(hour=6, minute=30),
+                                'day_end'   : datetime.time(hour=12+9, minute=30),
+                                'state'     : 'unknown',
+                            }
+        self.schedule_timer = None
+        self.rocket=rocket
+
+    def schedule_update(self):
+        # get current time
+        current = datetime.datetime.now().time()
+
+        #check if it's day time
+        is_day = ( current > self.schedule_settings['day_start'] and current < self.schedule_settings['day_end'])
+
+        new_state = 'day' if is_day else 'night'
+
+        if new_state != self.schedule_settings['state']:
+
+            if is_day:
+                print('It\'s day now!')
+                self.rocket.set('nightlight', 'off')
+            else:
+                print('It\'s night now!')
+                self.rocket.set('nightlight', 'on')
+
+        #update state
+        self.schedule_settings['state'] = new_state
+
 
 def main():
     parse_command_line()
@@ -557,6 +613,7 @@ def main():
     gen_pat_js()
 
     rocket=NightKnight(options.serial,debug=options.serial_debug)
+    LED_schedule = LightScheduler(rocket)
 
     handlers=[ (r"/", MainHandler,{'rocket':rocket}),
                (r"/home\.html", MainHandler,{'rocket':rocket}),
@@ -578,6 +635,7 @@ def main():
                (r"/brightness", BrightnessHandler,{'rocket':rocket}),
                (r"/parameter", ParameterHandler,{'rocket':rocket}),
                (r"/server.html", ServerHandler),
+               (r"/schedule.html", ScheduleHandler,{'scheduler':LED_schedule}),
                ]
 
     app = tornado.web.Application(
@@ -589,7 +647,14 @@ def main():
     app.listen(options.port)
     print(f'Starting server on port number {options.port}...')
     print(f'Open at http://127.0.0.1:{options.port}/index.html')
-    tornado.ioloop.IOLoop.current().start()
+
+    #we just started, force an update
+    LED_schedule.schedule_update()
+
+    loop = tornado.ioloop.IOLoop.current()
+    LED_schedule.schedule_timer = tornado.ioloop.PeriodicCallback(LED_schedule.schedule_update, 60e3)
+    LED_schedule.schedule_timer.start()
+    loop.start()
 
 
 if __name__ == "__main__":

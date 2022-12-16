@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Scheduling page">
+    <title>Lamp Schedule</title>
+    <link rel="stylesheet" href="{{ static_url("style.css") }}" type="text/css">
+</head>
+<body>
+    <div class="container">
+        <div id="actions" class="left">
+            {% for page in pages %}
+            <div class="menu"><a href="{{page}}.html" class="cmd">{{page}}</a></div>
+            {% end %}
+        </div>
+        <div id="content" class="center">
+            <div id="header">
+                <img class="header-img" src="{{ static_url("NK.png") }}" alt="Night Knight">
+            </div>
+            <div>
+                <p>
+                Current timezone :
+                </p>
+                <form method="POST">
+                    <p>
+                        <label for='dst'>Day Start : </label>
+                        <input type='time' name='start' id='dst' value='{{ d_start }}' step="{{60*1}}" tabindex=0 required>
+                    </p>
+                    <p>
+                        <label for='dend'>Day End : </label>
+                        <input type='time' name='end' id='dend' value='{{ d_end }}' step="{{60*1}}" tabindex=0 required>
+                    </p>
+                    <input type='submit' value='Set day times' title='Set day/night times'>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
