@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
+import appdirs
 import asyncio
+import configparser
 import datetime
 import humanize
 import json
@@ -37,6 +39,12 @@ panic_patterns = {
         'rpanic' : 'Unexpected reset caused panic.',
         'ptpanic' : 'Invalid pattern number',
         }
+
+appname = 'NightKnight-web'
+appauthor = 'jesse'
+
+config_dir = appdirs.user_config_dir(appname,appauthor)
+config_file = os.path.join(config_dir, 'config.cfg')
 
 def get_panic_str(pattern):
     if pattern in panic_patterns:
@@ -558,6 +566,8 @@ class ScheduleHandler(tornado.web.RequestHandler):
         #force update with new times
         self.scheduler.schedule_update()
 
+        self.scheduler.write_config(config_file)
+
         self.redirect('schedule.html')
 
 
@@ -575,6 +585,8 @@ def gen_pat_js():
     
 
 class LightScheduler:
+
+    save_keys = ('day_start', 'day_end')
 
     def __init__(self,rocket):
         self.schedule_settings = {
@@ -606,14 +618,53 @@ class LightScheduler:
         #update state
         self.schedule_settings['state'] = new_state
 
+    def write_config(self, file='settings.cfg'):
+        config = configparser.ConfigParser()
+
+        config['schedule'] = {}
+        for k, v in self.schedule_settings.items():
+            if k in self.save_keys:
+                #check if this is a time
+                if isinstance(v, datetime.time):
+                    config['schedule'][k] = v.strftime('%H:%M')
+                else:
+                    config['schedule'][k] = str('%H:%M')
+
+
+        with open(file, 'w') as configfile:
+            config.write(configfile)
+
+    def load_config(self, file='settings.cfg'):
+
+        if os.path.exists(file):
+            config = configparser.ConfigParser()
+
+            config.read(file)
+
+            vals = {}
+
+            for k,v in config['schedule'].items():
+                #check what type to convert it to
+                if isinstance(self.schedule_settings[k], datetime.time):
+                    vals[k] = datetime.datetime.strptime(v, '%H:%M').time()
+                elif isinstance(self.schedule_settings[k], str):
+                    vals[k] = v
+
+            #update all values at once
+            self.schedule_settings |= vals
 
 def main():
     parse_command_line()
 
     gen_pat_js()
 
+    #create configuration dir
+    os.makedirs(config_dir, exist_ok=True)
+
     rocket=NightKnight(options.serial,debug=options.serial_debug)
     LED_schedule = LightScheduler(rocket)
+    #load config if it exists
+    LED_schedule.load_config(config_file)
 
     handlers=[ (r"/", MainHandler,{'rocket':rocket}),
                (r"/home\.html", MainHandler,{'rocket':rocket}),
