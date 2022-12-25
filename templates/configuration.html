@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="NightKnight Saved Pattern Configuration">
+    <title>Saved Pattern</title>
+    <link rel="stylesheet" href="{{ static_url("style.css") }}" type="text/css">
+</head>
+<body>
+    <div class="container">
+        <div id="actions" class="left">
+            {% for page in pages %}
+            <div class="menu"><a href="{{page}}.html" class="cmd">{{page}}</a></div>
+            {% end %}
+        </div>
+        <div id="content" class="center">
+            <div id="header">
+                <img class="header-img" src="{{ static_url("NK.png") }}" alt="Night Knight">
+            </div>
+            <div>
+                <form method="POST">
+                    <p>
+                    <label for="cfg">Configuration</label>
+                    <select name="config" id="cfg" title="configuration to load">
+                    {% for n, f in configs %}
+                            <option value="{{f}}"
+                                    {% if f == current %}
+                                        selected=True
+                                    {% end %}
+                                    >{{n}}</option>
+                        {% end %}
+                    </select>
+                    </p>
+                    <p>
+                        <label for="nt">Use night mode</label>
+                        <input type="checkbox" id="nt" name="night" value="Night" title="If checked, set night verson"
+                              {% if is_night %}
+                                checked
+                              {% end %}
+                              >
+                    </p>
+                    <p>
+                        <input type="submit" value="Submit" title="Load config">
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>

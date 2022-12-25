@@ -1,3 +1,5 @@
+import ast
+import configparser
 import io
 import serial
 import re
@@ -202,6 +204,43 @@ class NightKnight:
             self._set('pattern', pat)
         else:
             raise RuntimeError(f'unexpected response to \'get\' command \'{line.strip()}\'')
+
+    def load_pattern_config(self, fname, is_night=False):
+        #TESTING: print the pattern we are loading
+        print(f'Loading pattern : {fname}')
+        config = configparser.ConfigParser()
+        #read config file
+        config.read(fname)
+
+        settings = dict(config['settings'])
+
+        if is_night:
+            #if it's night override with night values
+            settings |= dict(config['settings-night'])
+
+        #convert numeric strings to ints
+        for k, v in settings.items():
+            try:
+                # try to convert to python value
+                settings[k] = ast.literal_eval(v)
+            except ValueError:
+                #keep as a string
+                pass
+
+        if 'brightness' in settings:
+            #check if new setting is brighter
+            if settings['brightness'] > self.get('brightness'):
+                #set pattern first, so we don't panic
+                pat = settings.pop('pattern')
+                self.set('pattern', pat)
+            else:
+                #set brightness first so we don't panic
+                pat = settings.pop('brightness')
+                self.set('brightness', pat)
+
+        for k, v in settings.items():
+            self.set(k, v)
+
 
     def set_flight_pattern(self,pat):
         self._command(f'fpat {pat}')

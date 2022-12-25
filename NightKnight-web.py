@@ -4,12 +4,14 @@ import appdirs
 import asyncio
 import configparser
 import datetime
+import glob
 import humanize
 import json
 import os
 import patterns
 import platform
 import psutil
+import random
 import shutil
 import tornado.escape
 import tornado.ioloop
@@ -31,7 +33,7 @@ define("serial", default='/dev/ttyS4', help="Serial port to use")
 template_path=os.path.join(os.path.dirname(__file__), "templates")
 static_path=os.path.join(os.path.dirname(__file__), "static")
 
-NK_pages=('home','pattern','ADC','nosecone','resets','settings','flight_pattern','server','schedule')
+NK_pages=('home','pattern','ADC','nosecone','resets','settings','flight_pattern','server','schedule','config')
 
 panic_patterns = {
         'ppanic' : 'Settings caused power panic, try reducing brightness',
@@ -45,6 +47,7 @@ appauthor = 'jesse'
 
 config_dir = appdirs.user_config_dir(appname,appauthor)
 config_file = os.path.join(config_dir, 'config.cfg')
+pattern_dir = os.path.join(config_dir, 'patterns')
 
 def get_panic_str(pattern):
     if pattern in panic_patterns:
@@ -546,6 +549,27 @@ class ServerHandler(tornado.web.RequestHandler):
     def post(self):
         pass
 
+class ConfigHandler(tornado.web.RequestHandler):
+    def initialize(self, scheduler):
+        self.scheduler = scheduler
+
+    def get(self):
+        patterns = find_patterns()
+        config_list = [ (os.path.splitext(os.path.basename(c))[0], c) for c in patterns ]
+        self.render('configuration.html', pages=NK_pages, page='config',
+                        configs = config_list,
+                        is_night = self.scheduler.schedule_settings['state'] == 'night',
+                        current = self.scheduler.current_pattern,
+                    )
+
+    def post(self):
+        config = self.get_body_argument('config')
+        load_night = self.get_body_argument('night','Day') == 'Night'
+
+        self.scheduler.set_config(config, is_night=load_night)
+
+        self.redirect('config.html')
+
 class ScheduleHandler(tornado.web.RequestHandler):
     def initialize(self, scheduler):
         self.scheduler = scheduler
@@ -597,6 +621,18 @@ class LightScheduler:
         self.schedule_timer = None
         self.rocket=rocket
 
+        #get a list of pattern config files
+        self.patterns = find_patterns()
+        #initialize current pattern
+        self.current_pattern = None
+
+    def set_config(self, cfg, **kwargs):
+        #load pattern file
+        self.rocket.load_pattern_config(cfg, **kwargs)
+        #set config var
+        self.current_pattern = cfg
+
+
     def schedule_update(self):
         # get current time
         current = datetime.datetime.now().time()
@@ -610,10 +646,19 @@ class LightScheduler:
 
             if is_day:
                 print('It\'s day now!')
-                self.rocket.set('nightlight', 'off')
+
+                #set random pattern
+                self.set_config(random.choice(self.patterns))
             else:
                 print('It\'s night now!')
-                self.rocket.set('nightlight', 'on')
+
+                if self.current_pattern is not None:
+                    #set pattern
+                    self.set_config(self.current_pattern, is_night=True)
+                else:
+                    #no pattern chosen, just set nightlight mode
+                    self.rocket.set('nightlight', 'on')
+
 
         #update state
         self.schedule_settings['state'] = new_state
@@ -653,6 +698,10 @@ class LightScheduler:
             #update all values at once
             self.schedule_settings |= vals
 
+def find_patterns():
+    patterns = glob.glob(os.path.join(pattern_dir, '*.pat'))
+    return patterns
+
 def main():
     parse_command_line()
 
@@ -687,6 +736,7 @@ def main():
                (r"/parameter", ParameterHandler,{'rocket':rocket}),
                (r"/server.html", ServerHandler),
                (r"/schedule.html", ScheduleHandler,{'scheduler':LED_schedule}),
+               (r"/config.html", ConfigHandler,{'scheduler':LED_schedule}),
                ]
 
     app = tornado.web.Application(
