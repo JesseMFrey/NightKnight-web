@@ -338,9 +338,6 @@ class NightKnight:
         if(not m):
             raise RuntimeError(f'unable to parse \'{line}\'')
         brt = int(m.group('brt'))
-        #check for '>' char
-        if(not line.startswith('>')):
-            raise RuntimeError(f'Could not set NC \'{line.strip()}\'')
         self._set('brightness', brt)
 
 
