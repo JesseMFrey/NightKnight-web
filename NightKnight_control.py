@@ -68,7 +68,7 @@ class NightKnight:
     NC_modes=("static", "fade", "flash", "blip","pattern")
     chute_modes=("static", "fade", "flash", "blip")
     saved_settings = ('pattern', 'value', 'brightness', 'color', 'color_list',
-                      'flight_pattern', 'flight_altitude')
+                      'flight_pattern', 'flight_altitude', 'nightlight')
 
     def __init__(self,port,debug=False):
         self._sobj=serial.Serial(port,timeout=0.5) 
