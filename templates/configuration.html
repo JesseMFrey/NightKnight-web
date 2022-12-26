@@ -4,8 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="NightKnight Saved Pattern Configuration">
-    <title>Saved Pattern</title>
+    <title>Saved Patterns</title>
     <link rel="stylesheet" href="{{ static_url("style.css") }}" type="text/css">
+    <script src = "{{ static_url("jquery-3.6.0.min.js") }}"></script>
 </head>
 <body>
     <div class="container">
@@ -18,6 +19,10 @@
             <div id="header">
                 <img class="header-img" src="{{ static_url("NK.png") }}" alt="Night Knight">
             </div>
+            <div id="resp-alert" class="alert" hidden>
+                <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                <div id="resp-text"></div>
+            </div> 
             <div>
                 <form method="POST">
                     <p>
@@ -41,10 +46,128 @@
                               >
                     </p>
                     <p>
-                        <input type="submit" value="Submit" title="Load config">
+                        <input type="submit" name="action" value="Load" title="Load config">
+                        <input type="submit" name="action" value="Edit" title="Load config">
                     </p>
+                </form>
+                <form id="editor-form" action="/config-save" method="POST">
+                    <p>
+                        <label for="name">Pattern Name</label>
+                        <input type="text" id="name" name="filename"
+                             {% if config_name %}
+                                value="{{config_name}}"
+                             {% end %}
+                             required>
+                    </p>
+                    <p>
+                        <label for="day">Day settings :</label> <br>
+                        <textarea name="settings" id="day" class="config-text">
+                            {{day_config}}
+                        </textarea>
+                    </p>
+                    <p>
+                        <label for="night">Night settings :</label> <br>
+                        <textarea name="settings_night" id="night" class="config-text">
+                            {{night_config}}
+                        </textarea>
+                    </p>
+                    <input type='submit' name="action" value='Save' title='Save configuration file'>
+                    <input type='submit' name="action" value='Preview' title='Test configuration file'>
+                    <input type='submit' name="action" value='Night Preview' title='Test configuration file night section'>
                 </form>
             </div>
         </div>
     </div>
+    <div id="overwrite_prompt" class="white_content" hidden>
+        <p>
+        File exists! overwrite?
+        </p>
+        <p>
+        <button type="button" id="overwrite-yes" onclick="dialog_overlay_visibility(false)">Yes</button>
+        <button type="button" id="overwrite-no" onclick="dialog_overlay_visibility(false)">No</button>
+        </p>
+    </div>
+    <div id="fade" class="black_overlay"></div>
+    <script>
+        function dialog_overlay_visibility(visible)
+        {
+            var state = visible ? "block" : "none";
+            document.getElementById('overwrite_prompt').style.display = state;
+            document.getElementById('fade').style.display = state;
+        }
+
+        function display_message(text, color)
+        {
+            var alert_elm = document.getElementById("resp-alert");
+            var alert_txt = document.getElementById("resp-text");
+            alert_txt.innerHTML = text;
+            alert_elm.style.backgroundColor = color;
+            alert_elm.style.display = "block";
+
+        }
+
+        window.addEventListener("load", () => {
+            function sendData(action, force) {
+                const XHR = new XMLHttpRequest();
+
+                // Bind the FormData object and the form element
+                const FD = new FormData(form);
+
+                // add the action from the submitter
+                FD.append("action", action);
+
+                if(force)
+                {
+                    FD.append("force", true);
+                }
+
+                // Define what happens on successful data submission
+                XHR.addEventListener("load", (event) => {
+                    if( action == 'Save')
+                    {
+                        var obj = jQuery.parseJSON( event.target.responseText);
+
+                        if(obj.Success)
+                        {
+                            display_message("Config saved successfully!", 'green')
+                        }
+                        else
+                        {
+                            if(obj.Reason == "File exists")
+                            {
+
+                                document.getElementById("overwrite-yes").addEventListener("click", (event) => {sendData("Save", true);});
+                                dialog_overlay_visibility(true);
+                            }
+                            else
+                            {
+                                display_message(obj.Reason + ". Config not saved", 'red')
+                            }
+                        }
+                    }
+                });
+
+                // Define what happens in case of error
+                XHR.addEventListener("error", (event) => {
+                    display_message('Oops! Something went wrong.', 'red')
+                });
+
+                // Set up our request
+                XHR.open("POST", "/config-save");
+
+                // The data sent is what the user provided in the form
+                XHR.send(FD);
+            }
+
+            // Get the form element
+            const form = document.getElementById("editor-form");
+
+            // Add 'submit' event handler
+            form.addEventListener("submit", (event) => {
+                event.preventDefault();
+
+                sendData(event.submitter.value, false);
+            });
+        });
+    </script>
 </body>

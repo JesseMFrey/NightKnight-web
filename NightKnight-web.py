@@ -13,6 +13,7 @@ import platform
 import psutil
 import random
 import shutil
+import tempfile
 import tornado.escape
 import tornado.ioloop
 import tornado.locks
@@ -20,6 +21,7 @@ import tornado.template
 import tornado.web
 import webcolors
 
+from contextlib import nullcontext
 from NightKnight_control import NightKnight,CommandError
 from datetime import timedelta
 
@@ -549,6 +551,10 @@ class ServerHandler(tornado.web.RequestHandler):
     def post(self):
         pass
 
+def config_to_string(section):
+    section_dict = dict(section)
+    return '\n'.join([ f'{k} = {v}' for k, v in section_dict.items()])
+
 class ConfigHandler(tornado.web.RequestHandler):
     def initialize(self, scheduler):
         self.scheduler = scheduler
@@ -556,19 +562,99 @@ class ConfigHandler(tornado.web.RequestHandler):
     def get(self):
         patterns = find_patterns()
         config_list = [ (os.path.splitext(os.path.basename(c))[0], c) for c in patterns ]
+
+        edit_config = self.get_argument('edit', None)
+
+        if edit_config :
+            config = configparser.ConfigParser()
+
+            config.read(edit_config)
+
+            day_config = config_to_string(config['settings'])
+            night_config = config_to_string(config['settings-night'])
+            #set name the same as we loaded
+            config_name = os.path.splitext(os.path.basename(edit_config))[0]
+        else:
+            #get config from current settings
+            keys = self.scheduler.rocket.saved_settings
+            day_config = '\n'.join([f'{k} = {self.scheduler.rocket.get(k)}' for k in keys if k != 'nightlight'])
+            day_config += '\nnightlight = off'
+            night_config = '\nnightlight = on'
+            config_name = ""
+
+
         self.render('configuration.html', pages=NK_pages, page='config',
                         configs = config_list,
                         is_night = self.scheduler.schedule_settings['state'] == 'night',
                         current = self.scheduler.current_pattern,
+                        day_config=day_config,
+                        night_config=night_config,
+                        config_name=config_name,
                     )
 
     def post(self):
         config = self.get_body_argument('config')
         load_night = self.get_body_argument('night','Day') == 'Night'
 
-        self.scheduler.set_config(config, is_night=load_night)
+        action = self.get_body_argument('action')
+        if action == 'Load':
+            self.scheduler.set_config(config, is_night=load_night)
+        elif action == 'Edit':
+            self.redirect(f'config.html?edit={config}')
+            return
 
         self.redirect('config.html')
+
+def write_pat_config(file, settings, settings_night):
+    with open(file, 'w') if isinstance(file, str) else nullcontext(file) as f:
+        f.write('[settings]\n')
+        f.write(settings)
+        f.write('\n\n[settings-night]\n')
+        f.write(settings_night)
+
+class ConfigSaveHandler(tornado.web.RequestHandler):
+    def initialize(self, rocket):
+        self.rocket = rocket
+        self.set_header("Content-Type", 'application/json')
+
+    def post(self):
+        action = self.get_body_argument('action')
+
+        settings = self.get_body_argument('settings')
+        settings_night = self.get_body_argument('settings_night')
+        force = self.get_body_argument('force', False)
+
+        reason = ''
+
+        if action == 'Save':
+            filename = self.get_body_argument('filename')
+
+            full_name = os.path.join(pattern_dir, filename + '.pat')
+
+            if force or not os.path.exists(full_name):
+                write_pat_config(full_name, settings, settings_night)
+                success = True
+            else:
+                success = False
+                reason = 'File exists'
+        elif 'Preview' in action:
+            #open a temporary directory to store the config to
+            with tempfile.TemporaryDirectory() as td:
+                fname = os.path.join(td, 'tmp.pat')
+                with open(fname, 'w') as config:
+                    #write temporary file
+                    write_pat_config(config, settings, settings_night)
+
+                #apply to rocket
+                self.rocket.load_pattern_config(fname, is_night='Night' in action)
+
+            success = True
+        else:
+            success = False
+            reason = 'Invalid action'
+
+        response = json.dumps({'Success': success, 'Reason': reason})
+        self.write(response)
 
 class ScheduleHandler(tornado.web.RequestHandler):
     def initialize(self, scheduler):
@@ -737,6 +823,7 @@ def main():
                (r"/server(?:\.html)?$", ServerHandler),
                (r"/schedule(?:\.html)?$", ScheduleHandler,{'scheduler':LED_schedule}),
                (r"/config(?:\.html)?$", ConfigHandler,{'scheduler':LED_schedule}),
+               (r"/config-save(?:\.html)?$", ConfigSaveHandler,{'rocket':rocket}),
                ]
 
     app = tornado.web.Application(
