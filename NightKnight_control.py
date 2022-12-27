@@ -206,8 +206,6 @@ class NightKnight:
             raise RuntimeError(f'unexpected response to \'get\' command \'{line.strip()}\'')
 
     def load_pattern_config(self, fname, is_night=False):
-        #TESTING: print the pattern we are loading
-        print(f'Loading pattern : {fname}')
         config = configparser.ConfigParser()
         #read config file
         config.read(fname)
