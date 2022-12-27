@@ -565,9 +565,11 @@ class ConfigHandler(tornado.web.RequestHandler):
         current_name = os.path.splitext(os.path.basename(self.scheduler.current_pattern))[0]
 
         edit_name = self.get_argument('edit', None)
-        edit_config = os.path.join(pattern_dir, edit_name + '.pat')
 
-        if edit_config :
+        if edit_name :
+            #get full path to file
+            edit_config = os.path.join(pattern_dir, edit_name + '.pat')
+
             config = configparser.ConfigParser()
 
             config.read(edit_config)
