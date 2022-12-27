@@ -28,9 +28,9 @@
                     <p>
                     <label for="cfg">Configuration</label>
                     <select name="config" id="cfg" title="configuration to load">
-                    {% for n, f in configs %}
-                            <option value="{{f}}"
-                                    {% if f == current %}
+                    {% for n in configs %}
+                            <option value="{{n}}"
+                                    {% if n == current %}
                                         selected=True
                                     {% end %}
                                     >{{n}}</option>

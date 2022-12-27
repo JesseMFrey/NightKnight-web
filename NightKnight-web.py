@@ -561,9 +561,11 @@ class ConfigHandler(tornado.web.RequestHandler):
 
     def get(self):
         patterns = find_patterns()
-        config_list = [ (os.path.splitext(os.path.basename(c))[0], c) for c in patterns ]
+        config_list = [ os.path.splitext(os.path.basename(c))[0] for c in patterns ]
+        current_name = os.path.splitext(os.path.basename(self.scheduler.current_pattern))[0]
 
-        edit_config = self.get_argument('edit', None)
+        edit_name = self.get_argument('edit', None)
+        edit_config = os.path.join(pattern_dir, edit_name + '.pat')
 
         if edit_config :
             config = configparser.ConfigParser()
@@ -586,21 +588,22 @@ class ConfigHandler(tornado.web.RequestHandler):
         self.render('configuration.html', pages=NK_pages, page='config',
                         configs = config_list,
                         is_night = self.scheduler.schedule_settings['state'] == 'night',
-                        current = self.scheduler.current_pattern,
+                        current = current_name,
                         day_config=day_config,
                         night_config=night_config,
                         config_name=config_name,
                     )
 
     def post(self):
-        config = self.get_body_argument('config')
+        config_name = self.get_body_argument('config')
+        config = os.path.join(pattern_dir, config_name + '.pat')
         load_night = self.get_body_argument('night','Day') == 'Night'
 
         action = self.get_body_argument('action')
         if action == 'Load':
             self.scheduler.set_config(config, is_night=load_night)
         elif action == 'Edit':
-            self.redirect(f'config.html?edit={config}')
+            self.redirect(f'config.html?edit={config_name}')
             return
 
         self.redirect('config.html')
