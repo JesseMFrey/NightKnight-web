@@ -116,7 +116,7 @@ class PatternHandler(tornado.web.RequestHandler):
 
     def post(self):
         #get color
-        color=webcolors.hex_to_rgb(self.get_body_argument("color"))
+        color=tuple(webcolors.hex_to_rgb(self.get_body_argument("color")))
         #get brightness
         brt=self.get_body_argument("brt")
         #get if we should set NC
