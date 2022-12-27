@@ -579,7 +579,8 @@ class ConfigHandler(tornado.web.RequestHandler):
         else:
             #get config from current settings
             keys = self.scheduler.rocket.saved_settings
-            day_config = '\n'.join([f'{k} = {self.scheduler.rocket.get(k)}' for k in keys if k != 'nightlight'])
+            skip_keys = ('nightlight', 'flight_pattern', 'flight_altitude')
+            day_config = '\n'.join([f'{k} = {self.scheduler.rocket.get(k)}' for k in keys if k not in skip_keys])
             day_config += '\nnightlight = off'
             night_config = '\nnightlight = on'
             config_name = ""
