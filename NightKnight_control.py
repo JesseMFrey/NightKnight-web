@@ -227,7 +227,7 @@ class NightKnight:
 
         if 'brightness' in settings:
             #check if new setting is brighter
-            if settings['brightness'] > self.get('brightness'):
+            if settings['brightness'] > int(self.get('brightness')):
                 #set pattern first, so we don't panic
                 pat = settings.pop('pattern')
                 self.set('pattern', pat)
