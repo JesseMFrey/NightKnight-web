@@ -237,7 +237,11 @@ class NightKnight:
                 self.set('brightness', pat)
 
         for k, v in settings.items():
-            self.set(k, v)
+            #treate nosecone differently
+            if k == 'nosecone':
+                self.set('NC', *v)
+            else:
+                self.set(k, v)
 
 
     def set_flight_pattern(self,pat):
