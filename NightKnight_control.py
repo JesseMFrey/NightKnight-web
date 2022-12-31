@@ -69,6 +69,7 @@ class NightKnight:
     chute_modes=("static", "fade", "flash", "blip")
     saved_settings = ('pattern', 'value', 'brightness', 'color', 'color_list',
                       'flight_pattern', 'flight_altitude', 'nightlight')
+    NC_settings = ('NC_mode', 'NC_val1', 'NC_val2', 'NC_t1', 'NC_t2')
 
     def __init__(self,port,debug=False):
         self._sobj=serial.Serial(port,timeout=0.5) 
@@ -237,9 +238,20 @@ class NightKnight:
                 self.set('brightness', pat)
 
         for k, v in settings.items():
-            #treate nosecone differently
+            #treat nosecone differently
             if k == 'nosecone':
-                self.set('NC', *v)
+                if isinstance(v, str):
+                    if v == 'pattern':
+                        self.set('NC', 'pattern');
+                    elif v == 'off':
+                        self.set('NC', 'static', 0);
+                    else:
+                        raise ValueError(f'Unknown nosecone value, "{v}" in config')
+                elif isinstance(v, dict):
+                    self.set('NC', **v)
+                else:
+                    #hopefully it's an unpackable sequence...
+                    self.set('NC', *v)
             else:
                 self.set(k, v)
 
