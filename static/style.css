@@ -171,6 +171,27 @@ td.heading {
     color: black;
 }
 
+.content{
+    display: inline-block;
+    text-align: left;
+}
+
+.tabbed-content{
+    text-align: left;
+    margin : 5px 5px 5px 2em;
+}
+
+.centered-content {
+    display: block;
+    text-align: center;
+}
+
+#pattern-select {
+    width : 100%;
+    min-height : 20em;
+    max-height : 100%;
+}
+
 .black_overlay {
     display: none;
     position: fixed;

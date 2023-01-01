@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import appdirs
+import ast
 import asyncio
 import configparser
 import datetime
@@ -561,14 +562,13 @@ class ConfigHandler(tornado.web.RequestHandler):
 
     def get(self):
         patterns = find_patterns()
-        config_list = [ os.path.splitext(os.path.basename(c))[0] for c in patterns ]
         current_name = os.path.splitext(os.path.basename(self.scheduler.current_pattern))[0]
 
         edit_name = self.get_argument('edit', None)
 
         if edit_name :
             #get full path to file
-            edit_config = os.path.join(pattern_dir, edit_name + '.pat')
+            edit_config = pattern_filename(edit_name)
 
             config = configparser.ConfigParser()
 
@@ -577,7 +577,7 @@ class ConfigHandler(tornado.web.RequestHandler):
             day_config = config_to_string(config['settings'])
             night_config = config_to_string(config['settings-night'])
             #set name the same as we loaded
-            config_name = os.path.splitext(os.path.basename(edit_config))[0]
+            config_name = edit_name
         else:
             #get config from current settings
             keys = self.scheduler.rocket.saved_settings
@@ -594,8 +594,7 @@ class ConfigHandler(tornado.web.RequestHandler):
 
 
         self.render('configuration.html', pages=NK_pages, page='config',
-                        configs = config_list,
-                        is_night = self.scheduler.schedule_settings['state'] == 'night',
+                        configs = patterns,
                         current = current_name,
                         day_config=day_config,
                         night_config=night_config,
@@ -605,10 +604,10 @@ class ConfigHandler(tornado.web.RequestHandler):
     def post(self):
         config_name = self.get_body_argument('config')
         config = os.path.join(pattern_dir, config_name + '.pat')
-        load_night = self.get_body_argument('night','Day') == 'Night'
 
         action = self.get_body_argument('action')
         if action == 'Load':
+            load_night = self.scheduler.state == 'night'
             self.scheduler.set_config(config, is_night=load_night)
         elif action == 'Edit':
             self.redirect(f'config.html?edit={config_name}')
@@ -638,9 +637,9 @@ class ConfigSaveHandler(tornado.web.RequestHandler):
         reason = ''
 
         if action == 'Save':
-            filename = self.get_body_argument('filename')
+            pat = self.get_body_argument('name')
 
-            full_name = os.path.join(pattern_dir, filename + '.pat')
+            full_name = pattern_filename(pat)
 
             if force or not os.path.exists(full_name):
                 write_pat_config(full_name, settings, settings_night)
@@ -672,19 +671,67 @@ class ScheduleHandler(tornado.web.RequestHandler):
         self.scheduler = scheduler
 
     def get(self):
+        patterns = find_patterns()
         self.render('schedule.html', pages=NK_pages, page='schedule',
                     d_start=self.scheduler.schedule_settings['day_start'].strftime('%H:%M'),
                     d_end=self.scheduler.schedule_settings['day_end'].strftime('%H:%M'),
+                    mode=self.scheduler.schedule_settings['mode'],
+                    interval=self.scheduler.schedule_settings['interval'],
+                    section=self.scheduler.schedule_settings['section'],
+                    config_list=self.scheduler.schedule_settings['patterns'],
+                    patterns=patterns,
+                    holidays=self.scheduler.schedule_settings['holidays'],
                     )
 
     def post(self):
         day_start = self.get_body_argument('start')
+        day_start = datetime.datetime.strptime(day_start, '%H:%M').time()
         day_end   = self.get_body_argument('end')
+        day_end = datetime.datetime.strptime(day_end, '%H:%M').time()
 
-        self.scheduler.schedule_settings['day_start'] = datetime.datetime.strptime(day_start, '%H:%M').time()
-        self.scheduler.schedule_settings['day_end'] = datetime.datetime.strptime(day_end, '%H:%M').time()
+        holiday_months = self.get_body_arguments('holiday-month')
+        holiday_days = self.get_body_arguments('holiday-day')
+        holiday_pats = self.get_body_arguments('holiday-pat')
 
-        #force update with new times
+        holidays = [{'month':m , 'day':d, 'pattern':p}
+                    for m, d, p in zip(holiday_months, holiday_days,
+                                       holiday_pats)
+                    ]
+
+        interval = int(self.get_body_argument('interval'))
+
+        mode = self.get_body_argument('mode')
+        if mode not in self.scheduler.modes:
+            raise ValueError(f'Invalid mode : "{mode}"')
+
+        section = self.get_body_argument('section')
+        if section not in self.scheduler.sections:
+            raise ValueError(f'Invalid section : "{section}"')
+
+        patterns = self.get_body_arguments('patterns')
+        if isinstance(patterns, str):
+            #it should be a list, but if it's not, force it to be
+            patterns = [patterns, ]
+
+
+        #update settings all at once, so we find errors with arguments
+
+        #only set the relevent settings
+        if mode == 'lamp':
+            self.scheduler.schedule_settings['day_start'] = day_start
+            self.scheduler.schedule_settings['day_end'] = day_end
+            self.scheduler.schedule_settings['holidays'] = holidays
+        elif mode == 'display':
+            self.scheduler.schedule_settings['interval'] = interval
+            self.scheduler.schedule_settings['section'] = section
+        else:
+            #not sure how we'd get here but...
+            raise ValueError(f'Invalid mode : "{mode}"')
+
+        self.scheduler.schedule_settings['mode'] = mode
+        self.scheduler.schedule_settings['patterns'] = patterns
+
+        #force update with new settings
         self.scheduler.schedule_update()
 
         self.scheduler.write_config(config_file)
@@ -707,25 +754,36 @@ def gen_pat_js():
 
 class LightScheduler:
 
-    save_keys = ('day_start', 'day_end')
+    modes = ('lamp', 'display')
+    sections = ('night', 'day', 'random')
 
     def __init__(self,rocket):
         self.schedule_settings = {
-                                'day_start' : datetime.time(hour=6, minute=30),
-                                'day_end'   : datetime.time(hour=12+9, minute=30),
-                                'state'     : 'unknown',
+                                'mode'           : 'lamp',
+                                'day_start'      : datetime.time(hour=6, minute=30),
+                                'day_end'        : datetime.time(hour=12+9, minute=30),
+                                'interval'       : 5,
+                                'section'        : 'day',
+                                'patterns'       : [],
+                                'holidays'       : [],
                             }
+        self.state = 'unknown'
         self.schedule_timer = None
         self.rocket=rocket
 
-        #get a list of pattern config files
-        self.patterns = find_patterns()
+        #load config if it exists
+        self.load_config(config_file)
+
+        if not self.schedule_settings['patterns']:
+            self.schedule_settings['patterns'] = find_patterns()
+
         #initialize current pattern
         self.current_pattern = None
 
     def set_config(self, cfg, **kwargs):
+        cfgf = pattern_filename(cfg)
         #load pattern file
-        self.rocket.load_pattern_config(cfg, **kwargs)
+        self.rocket.load_pattern_config(cfgf, **kwargs)
         #set config var
         self.current_pattern = cfg
 
@@ -739,18 +797,19 @@ class LightScheduler:
 
         new_state = 'day' if is_day else 'night'
 
-        if new_state != self.schedule_settings['state']:
+        if new_state != self.state:
 
             if is_day:
                 print('It\'s day now!')
 
                 #set random pattern
-                self.set_config(random.choice(self.patterns))
+                pat = random.choice(self.schedule_settings['patterns'])
+                print(f'Loading pattern : {pat}')
+                self.set_config(pat)
             else:
                 print('It\'s night now!')
 
                 if self.current_pattern is not None:
-                    #set pattern
                     self.set_config(self.current_pattern, is_night=True)
                 else:
                     #no pattern chosen, just set nightlight mode
@@ -758,19 +817,18 @@ class LightScheduler:
 
 
         #update state
-        self.schedule_settings['state'] = new_state
+        self.state = new_state
 
     def write_config(self, file='settings.cfg'):
         config = configparser.ConfigParser()
 
         config['schedule'] = {}
         for k, v in self.schedule_settings.items():
-            if k in self.save_keys:
-                #check if this is a time
-                if isinstance(v, datetime.time):
-                    config['schedule'][k] = v.strftime('%H:%M')
-                else:
-                    config['schedule'][k] = str('%H:%M')
+            #check if this is a time
+            if isinstance(v, datetime.time):
+                config['schedule'][k] = v.strftime('%H:%M')
+            else:
+                config['schedule'][k] = str(v)
 
 
         with open(file, 'w') as configfile:
@@ -789,15 +847,22 @@ class LightScheduler:
                 #check what type to convert it to
                 if isinstance(self.schedule_settings[k], datetime.time):
                     vals[k] = datetime.datetime.strptime(v, '%H:%M').time()
-                elif isinstance(self.schedule_settings[k], str):
-                    vals[k] = v
+                else:
+                    try:
+                        vals[k] = ast.literal_eval(v)
+                    except ValueError:
+                        #otherwise, keep as string
+                        vals[k] = v
 
             #update all values at once
             self.schedule_settings |= vals
 
 def find_patterns():
     patterns = glob.glob(os.path.join(pattern_dir, '*.pat'))
-    return patterns
+    return [os.path.splitext(os.path.basename(p))[0] for p in patterns]
+
+def pattern_filename(p):
+    return os.path.join(pattern_dir ,p + '.pat')
 
 def main():
     parse_command_line()
@@ -809,8 +874,6 @@ def main():
 
     rocket=NightKnight(options.serial,debug=options.serial_debug)
     LED_schedule = LightScheduler(rocket)
-    #load config if it exists
-    LED_schedule.load_config(config_file)
 
     handlers=[ (r"/", MainHandler,{'rocket':rocket}),
                (r"/home(?:\.html)?$", MainHandler,{'rocket':rocket}),

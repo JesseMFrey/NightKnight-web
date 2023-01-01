@@ -19,21 +19,177 @@
                 <img class="header-img" src="{{ static_url("NK.png") }}" alt="Night Knight">
             </div>
             <div>
-                <p>
-                Current timezone :
-                </p>
-                <form method="POST">
-                    <p>
-                        <label for='dst'>Day Start : </label>
-                        <input type='time' name='start' id='dst' value='{{ d_start }}' step="{{60*1}}" tabindex=0 required>
-                    </p>
-                    <p>
-                        <label for='dend'>Day End : </label>
-                        <input type='time' name='end' id='dend' value='{{ d_end }}' step="{{60*1}}" tabindex=0 required>
-                    </p>
-                    <input type='submit' value='Set day times' title='Set day/night times'>
+                <div class="content">
+                <h2>Schedule</h2>
+                <form method="POST" class="content">
+                    <input type="radio" name="mode" value="lamp" id="mode"
+                        title="Change pattern every day, setting a, usually, dimmer night mode at night."
+                        {% if mode == 'lamp' %}
+                            checked="checked"
+                        {% end %}
+                        ><label for="lamp-mode">Lamp Mode</label>
+                    <div id="lamp-items" class="tabbed-content">
+                    <h3>Daily Schedule</h3>
+                    <div class="tabbed-content">
+                            <p>
+                            <label for='dst'>Day Start : </label>
+                            <input type='time' name='start' id='dst' value='{{ d_start }}' step="{{60*1}}" tabindex=0 required>
+                        </p>
+                        <p>
+                            <label for='dend'>Day End : </label>
+                            <input type='time' name='end' id='dend' value='{{ d_end }}' step="{{60*1}}" tabindex=0 required>
+                        </p>
+                    </div>
+                    <h3>Holiday Schedule</h3>
+                        <div class="tabbed-content">
+                            <p>
+                            <button type="button" onclick="add_holiday('', '', '')">Add holiday</button>
+                            </p>
+                            <span id="holiday-container">
+                            </span>
+                        </div>
+                    </div>
+                    <input type="radio" name="mode" value="display" id="mode"
+                            title="Patterns are chosen at short, fixed, interval. Good to show off"
+                            {% if mode == 'display' %}
+                                checked="checked"
+                            {% end %}
+                            ><label for="mode">Display Mode</label>
+                    <div id="display-items" class="tabbed-content">
+                        <p>
+                            <label for="interval">Pattern interval (min) : </label>
+                            <input type="number" name="interval" id="interval" min="0" max="60" value="{{interval}}" style="width : 4.3em">
+                        </p>
+                        <p>
+                            <input type="radio" value="day" name="section" id="day"
+                                title="Use day mode from patterns."
+                                {% if section == 'day' %}
+                                    checked="checked"
+                                {% end %}
+                                >
+                            <label for="day">Day mode<label><br>
+                            <input type="radio" value="night" name="section" id="night"
+                                title="Use night mode from patterns."
+                                {% if section == 'night' %}
+                                    checked="checked"
+                                {% end %}
+                                >
+                            <label for="night">Night mode<label><br>
+                            <input type="radio" value="random" name="section" id="random"
+                                title="Randomly chose day or night mode from patterns."
+                                {% if section == 'random' %}
+                                    checked="checked"
+                                {% end %}
+                                >
+                            <label for="random">Random mode<label><br>
+                        </p>
+                    </div>
+                    <h2>Pattern Selection</h2>
+                    <div class="tabbed-content">
+                        <p>
+                        <label for="pattern-select">Patterns to use:</label><br>
+                        <select id="pattern-select" name="patterns" multiple>
+                            {% for c in patterns %}
+                                <option value="{{c}}"
+                                    {% if c in config_list %}
+                                        selected=True
+                                    {% end %}
+                                    >{{c}}</option>
+                            {%end %}
+                        </select>
+                        </p>
+                    </div>
+                    <div class="centered-content">
+                    <input type='submit' value='Set schedule' title='Set day/night times'>
+                    </div>
                 </form>
+                </div>
             </div>
         </div>
     </div>
+    <script>
+        const months = [ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul",
+                         "Aug", "Sept", "Oct", "Nov", "Dec",];
+        const patterns = [
+            {% for p in patterns %}
+                "{{p}}",
+            {% end %}
+            ];
+        const holiday_container = document.getElementById("holiday-container");
+        function add_holiday(month, day, pattern)
+        {
+            const placeholder_txt = "--select--";
+            const para = document.createElement("p");
+
+            const month_e = document.createElement("select");
+            month_e.name = "holiday-month";
+            month_e.required = true;
+
+            month_empty = document.createElement("option");
+            month_empty.value = "";
+            month_empty.appendChild(document.createTextNode(placeholder_txt));
+            month_e.appendChild(month_empty);
+
+            for (const m of months)
+            {
+                const e = document.createElement("option");
+                e.value = m;
+                if(m == month)
+                {
+                    e.selected = true;
+                }
+                e.appendChild(document.createTextNode(m));
+
+                month_e.appendChild(e);
+            }
+            para.appendChild(month_e);
+
+            const day_e = document.createElement("input");
+            day_e.type = "number";
+            day_e.name = "holiday-day";
+            day_e.min = "1";
+            day_e.max = "31";
+            day_e.style = "width : 4.3em";
+            day_e.value = day.toString();
+            day_e.required = true;
+            para.appendChild(day_e);
+
+            const pat_e = document.createElement("select");
+            pat_e.name = "holiday-pat";
+            pat_e.required = true;
+
+            pat_empty = document.createElement("option");
+            pat_empty.value = "";
+            pat_empty.appendChild(document.createTextNode(placeholder_txt));
+            pat_e.appendChild(pat_empty);
+
+            for (const p of patterns)
+            {
+                const e = document.createElement("option");
+                e.value = p;
+                if(p == pattern)
+                {
+                    e.selected = true;
+                }
+                e.appendChild(document.createTextNode(p));
+
+                pat_e.appendChild(e);
+            }
+            para.appendChild(pat_e);
+
+            const close_btn = document.createElement("button");
+            close_btn.type = "button";
+            close_btn.appendChild(document.createTextNode("remove"));
+            close_btn.addEventListener("click", function() {para.remove()});
+            para.appendChild(close_btn);
+
+            holiday_container.appendChild(para);
+        }
+
+        window.addEventListener("load", () => {
+            {% for h in holidays %}
+                add_holiday("{{h['month']}}", {{h['day']}}, "{{h['pattern']}}");
+            {% end %}
+        });
+    </script>
 </body>
