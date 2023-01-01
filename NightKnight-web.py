@@ -769,6 +769,7 @@ class LightScheduler:
                             }
         self.state = 'unknown'
         self.schedule_timer = None
+        self.interval_counter = None
         self.rocket=rocket
 
         #load config if it exists
@@ -787,38 +788,59 @@ class LightScheduler:
         #set config var
         self.current_pattern = cfg
 
-    def set_random_pattern(self):
+    def set_random_pattern(self, **kwargs):
         #set random pattern
         pat = random.choice(self.schedule_settings['patterns'])
-        self.set_config(pat)
+        self.set_config(pat, **kwargs)
 
 
     def schedule_update(self):
-        # get current time
-        current = datetime.datetime.now().time()
+        if self.schedule_settings['mode'] == 'lamp':
+            # get current time
+            current = datetime.datetime.now().time()
 
-        #check if it's day time
-        is_day = ( current > self.schedule_settings['day_start'] and current < self.schedule_settings['day_end'])
+            #check if it's day time
+            is_day = ( current > self.schedule_settings['day_start'] and current < self.schedule_settings['day_end'])
 
-        new_state = 'day' if is_day else 'night'
+            new_state = 'day' if is_day else 'night'
 
-        if new_state != self.state:
+            if new_state != self.state:
 
-            if is_day:
-                print('It\'s day now!')
-                self.set_random_pattern()
-            else:
-                print('It\'s night now!')
-
-                if self.current_pattern is not None:
-                    self.set_config(self.current_pattern, is_night=True)
+                if is_day:
+                    print('It\'s day now!')
+                    self.set_random_pattern()
                 else:
-                    #no pattern chosen, just set nightlight mode
-                    self.rocket.set('nightlight', 'on')
+                    print('It\'s night now!')
 
+                    if self.current_pattern is not None:
+                        self.set_config(self.current_pattern, is_night=True)
+                    else:
+                        #no pattern chosen, just set nightlight mode
+                        self.rocket.set('nightlight', 'on')
 
-        #update state
-        self.state = new_state
+            #update state
+            self.state = new_state
+
+        elif self.schedule_settings['mode'] == 'display':
+            if self.interval_counter is None or \
+                self.interval_counter >= self.schedule_settings['interval']:
+
+                #reset timer to start
+                self.interval_counter = 1
+
+                if self.schedule_settings['section'] == 'day':
+                    night_section = False
+                elif self.schedule_settings['section'] == 'night':
+                    night_section = True
+                elif self.schedule_settings['section'] == 'random':
+                    night_section = random.choice([True, False])
+                else:
+                    raise ValueError(f'invalid section setting : "{self.schedule_settings["section"]}"')
+
+                self.set_random_pattern(is_night = night_section)
+            else:
+                self.interval_counter += 1
+
 
     def write_config(self, file='settings.cfg'):
         config = configparser.ConfigParser()
