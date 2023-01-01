@@ -787,6 +787,11 @@ class LightScheduler:
         #set config var
         self.current_pattern = cfg
 
+    def set_random_pattern(self):
+        #set random pattern
+        pat = random.choice(self.schedule_settings['patterns'])
+        self.set_config(pat)
+
 
     def schedule_update(self):
         # get current time
@@ -801,11 +806,7 @@ class LightScheduler:
 
             if is_day:
                 print('It\'s day now!')
-
-                #set random pattern
-                pat = random.choice(self.schedule_settings['patterns'])
-                print(f'Loading pattern : {pat}')
-                self.set_config(pat)
+                self.set_random_pattern()
             else:
                 print('It\'s night now!')
 
