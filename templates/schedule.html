@@ -22,7 +22,7 @@
                 <div class="content">
                 <h2>Schedule</h2>
                 <form method="POST" class="content">
-                    <input type="radio" name="mode" value="lamp" id="mode"
+                    <input type="radio" name="mode" value="lamp" id="lamp-mode"
                         title="Change pattern every day, setting a, usually, dimmer night mode at night."
                         {% if mode == 'lamp' %}
                             checked="checked"
@@ -33,32 +33,44 @@
                     <div class="tabbed-content">
                             <p>
                             <label for='dst'>Day Start : </label>
-                            <input type='time' name='start' id='dst' value='{{ d_start }}' step="{{60*1}}" tabindex=0 required>
+                            <input type='time' name='start' id='dst'
+                                   value='{{ d_start }}' step="{{60*1}}"
+                                   tabindex=0 required
+                            >
                         </p>
                         <p>
                             <label for='dend'>Day End : </label>
-                            <input type='time' name='end' id='dend' value='{{ d_end }}' step="{{60*1}}" tabindex=0 required>
+                            <input type='time' name='end' id='dend'
+                                   value='{{ d_end }}' step="{{60*1}}"
+                                   tabindex=0 required
+                            >
                         </p>
                     </div>
                     <h3>Holiday Schedule</h3>
                         <div class="tabbed-content">
                             <p>
-                            <button type="button" onclick="add_holiday('', '', '')">Add holiday</button>
+                                <button type="button"
+                                        onclick="add_holiday('', '', '')"
+                                >Add holiday</button>
                             </p>
                             <span id="holiday-container">
                             </span>
                         </div>
                     </div>
-                    <input type="radio" name="mode" value="display" id="mode"
+                    <input type="radio" name="mode" value="display"
+                            id="display-mode"
                             title="Patterns are chosen at short, fixed, interval. Good to show off"
                             {% if mode == 'display' %}
                                 checked="checked"
                             {% end %}
-                            ><label for="mode">Display Mode</label>
+                            ><label for="display-mode">Display Mode</label>
                     <div id="display-items" class="tabbed-content">
                         <p>
                             <label for="interval">Pattern interval (min) : </label>
-                            <input type="number" name="interval" id="interval" min="0" max="60" value="{{interval}}" style="width : 4.3em">
+                            <input type="number" name="interval" id="interval"
+                                   min="0" max="60" value="{{interval}}"
+                                   style="width : 4.3em"
+                            >
                         </p>
                         <p>
                             <input type="radio" value="day" name="section" id="day"
@@ -68,19 +80,21 @@
                                 {% end %}
                                 >
                             <label for="day">Day mode<label><br>
-                            <input type="radio" value="night" name="section" id="night"
+                            <input type="radio" value="night" name="section"
+                                id="night"
                                 title="Use night mode from patterns."
                                 {% if section == 'night' %}
                                     checked="checked"
                                 {% end %}
-                                >
+                            >
                             <label for="night">Night mode<label><br>
-                            <input type="radio" value="random" name="section" id="random"
+                            <input type="radio" value="random"
+                                name="section" id="random"
                                 title="Randomly chose day or night mode from patterns."
                                 {% if section == 'random' %}
                                     checked="checked"
                                 {% end %}
-                                >
+                            >
                             <label for="random">Random mode<label><br>
                         </p>
                     </div>
@@ -100,7 +114,9 @@
                         </p>
                     </div>
                     <div class="centered-content">
-                    <input type='submit' value='Set schedule' title='Set day/night times'>
+                    <input type='submit' value='Set schedule'
+                           title='Set day/night times'
+                    >
                     </div>
                 </form>
                 </div>
@@ -124,6 +140,8 @@
             const month_e = document.createElement("select");
             month_e.name = "holiday-month";
             month_e.required = true;
+            month_e.ariaLabel = "Holiday month : "
+            console.log(month_e)
 
             month_empty = document.createElement("option");
             month_empty.value = "";
@@ -147,6 +165,7 @@
             const day_e = document.createElement("input");
             day_e.type = "number";
             day_e.name = "holiday-day";
+            day_e.ariaLabel = "Holiday day :"
             day_e.min = "1";
             day_e.max = "31";
             day_e.style = "width : 4.3em";
@@ -156,6 +175,7 @@
 
             const pat_e = document.createElement("select");
             pat_e.name = "holiday-pat";
+            pat_e.ariaLabel = "Holiday pattern :"
             pat_e.required = true;
 
             pat_empty = document.createElement("option");
@@ -179,7 +199,8 @@
 
             const close_btn = document.createElement("button");
             close_btn.type = "button";
-            close_btn.appendChild(document.createTextNode("remove"));
+            close_btn.ariaLabel = "remove holiday"
+            close_btn.appendChild(document.createTextNode("x"));
             close_btn.addEventListener("click", function() {para.remove()});
             para.appendChild(close_btn);
 

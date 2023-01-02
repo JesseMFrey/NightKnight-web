@@ -60,31 +60,6 @@ body {
     max-width : 300em;
 }
 
-
-@media screen and (max-width: 100em) {
-    .center {
-        width: 100% !important;
-        max-width : 100%;
-    }
-
-    .right {
-        width: 0%;
-    }
-
-    .left {
-        width: 100%;
-        max-width : 100%;
-    }
-
-    .menu {
-        width : auto;
-        float : none;
-        clear : none;
-        display : inline-block;
-    }
-
-}
-
 .container:after {
     clear: both;
 }
@@ -192,6 +167,21 @@ td.heading {
     max-height : 100%;
 }
 
+#holiday-container {
+    border : solid 1px white;
+    width : 100%;
+    display : block;
+    border-radius : 3px;
+    min-height : 2em;
+}
+
+#holiday-container p {
+    margin : 1px;
+    border : solid 1px #3BB9FF;
+    padding : 1px;
+    border-radius : 3px;
+}
+
 .black_overlay {
     display: none;
     position: fixed;
@@ -249,3 +239,31 @@ a:hover {
 a:active {
   color: #ea80fc;
 } 
+
+@media screen and (max-width: 100em) {
+    .center {
+        width: 100% !important;
+        max-width : 100%;
+    }
+
+    .right {
+        width: 0%;
+    }
+
+    .left {
+        width: 100%;
+        max-width : 100%;
+    }
+
+    .menu {
+        width : auto;
+        float : none;
+        clear : none;
+        display : inline-block;
+    }
+
+    .tabbed-content{
+        margin-left : 0.5em;
+    }
+}
+
