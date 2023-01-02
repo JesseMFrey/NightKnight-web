@@ -808,7 +808,17 @@ class LightScheduler:
 
                 if is_day:
                     print('It\'s day now!')
-                    self.set_random_pattern()
+                    holidays = [f'{int(h["day"]):02d}{h["month"]}'
+                                for h in self.schedule_settings['holidays']]
+                    today = datetime.datetime.now().strftime('%d%b')
+
+                    if today in holidays:
+                        idx = holidays.index(today)
+                        holiday_info = self.schedule_settings['holidays'][idx]
+                        config = holiday_info['pattern']
+                        self.set_config(config)
+                    else:
+                        self.set_random_pattern()
                 else:
                     print('It\'s night now!')
 
