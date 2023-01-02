@@ -211,5 +211,39 @@
                 add_holiday("{{h['month']}}", {{h['day']}}, "{{h['pattern']}}");
             {% end %}
         });
+
+        function set_child_input_state(node, state)
+        {
+            for(let c of node.children)
+            {
+                if(c.tagName == "INPUT" || c.tagName == "INPUT" ||
+                    c.tagName == "SELECT" || c.tagName == "BUTTON")
+                {
+                    c.disabled = !state;
+                }
+                else
+                {
+                    set_child_input_state(c, state);
+                }
+            }
+        }
+
+        function disable_if_unchecked()
+        {
+            let container_names = ["lamp", "display"];
+
+            for(let n of container_names)
+            {
+                let state = document.getElementById(n + "-mode").checked;
+                let container = document.getElementById(n + "-items");
+                set_child_input_state(container, state);
+            }
+        }
+
+        //set initial state
+        disable_if_unchecked();
+
+        document.getElementById("lamp-mode").addEventListener("change", disable_if_unchecked);
+        document.getElementById("display-mode").addEventListener("change", disable_if_unchecked);
     </script>
 </body>
