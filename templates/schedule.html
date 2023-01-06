@@ -210,6 +210,9 @@
             {% for h in holidays %}
                 add_holiday("{{h['month']}}", {{h['day']}}, "{{h['pattern']}}");
             {% end %}
+
+            //set initial state
+            disable_if_unchecked();
         });
 
         function set_child_input_state(node, state)
@@ -239,9 +242,6 @@
                 set_child_input_state(container, state);
             }
         }
-
-        //set initial state
-        disable_if_unchecked();
 
         document.getElementById("lamp-mode").addEventListener("change", disable_if_unchecked);
         document.getElementById("display-mode").addEventListener("change", disable_if_unchecked);
