@@ -684,29 +684,10 @@ class ScheduleHandler(tornado.web.RequestHandler):
                     )
 
     def post(self):
-        day_start = self.get_body_argument('start')
-        day_start = datetime.datetime.strptime(day_start, '%H:%M').time()
-        day_end   = self.get_body_argument('end')
-        day_end = datetime.datetime.strptime(day_end, '%H:%M').time()
-
-        holiday_months = self.get_body_arguments('holiday-month')
-        holiday_days = self.get_body_arguments('holiday-day')
-        holiday_pats = self.get_body_arguments('holiday-pat')
-
-        holidays = [{'month':m , 'day':d, 'pattern':p}
-                    for m, d, p in zip(holiday_months, holiday_days,
-                                       holiday_pats)
-                    ]
-
-        interval = int(self.get_body_argument('interval'))
 
         mode = self.get_body_argument('mode')
         if mode not in self.scheduler.modes:
             raise ValueError(f'Invalid mode : "{mode}"')
-
-        section = self.get_body_argument('section')
-        if section not in self.scheduler.sections:
-            raise ValueError(f'Invalid section : "{section}"')
 
         patterns = self.get_body_arguments('patterns')
         if isinstance(patterns, str):
@@ -714,14 +695,34 @@ class ScheduleHandler(tornado.web.RequestHandler):
             patterns = [patterns, ]
 
 
-        #update settings all at once, so we find errors with arguments
-
-        #only set the relevent settings
+        #only set/get the relevent settings
         if mode == 'lamp':
+            day_start = self.get_body_argument('start')
+            day_start = datetime.datetime.strptime(day_start, '%H:%M').time()
+            day_end   = self.get_body_argument('end')
+            day_end = datetime.datetime.strptime(day_end, '%H:%M').time()
+
+            holiday_months = self.get_body_arguments('holiday-month')
+            holiday_days = self.get_body_arguments('holiday-day')
+            holiday_pats = self.get_body_arguments('holiday-pat')
+
+            holidays = [{'month':m , 'day':d, 'pattern':p}
+                        for m, d, p in zip(holiday_months, holiday_days,
+                                           holiday_pats)
+                        ]
+
+
             self.scheduler.schedule_settings['day_start'] = day_start
             self.scheduler.schedule_settings['day_end'] = day_end
             self.scheduler.schedule_settings['holidays'] = holidays
         elif mode == 'display':
+            interval = int(self.get_body_argument('interval'))
+
+            section = self.get_body_argument('section')
+            if section not in self.scheduler.sections:
+                raise ValueError(f'Invalid section : "{section}"')
+
+
             self.scheduler.schedule_settings['interval'] = interval
             self.scheduler.schedule_settings['section'] = section
         else:
