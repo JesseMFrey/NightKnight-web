@@ -603,12 +603,11 @@ class ConfigHandler(tornado.web.RequestHandler):
 
     def post(self):
         config_name = self.get_body_argument('config')
-        config = os.path.join(pattern_dir, config_name + '.pat')
 
         action = self.get_body_argument('action')
         if action == 'Load':
             load_night = self.scheduler.state == 'night'
-            self.scheduler.set_config(config, is_night=load_night)
+            self.scheduler.set_config(config_name, is_night=load_night)
         elif action == 'Edit':
             self.redirect(f'config.html?edit={config_name}')
             return
