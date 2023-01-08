@@ -210,11 +210,10 @@ class NightKnight:
     def load_pattern_config(self, fname, is_night=False):
         config = configparser.ConfigParser()
 
-        if not os.path.exists(fname):
-            raise ValueError(f'File "{fname}" does not exist')
-
         #read config file
-        config.read(fname)
+        read = config.read(fname)
+        if not read:
+            raise ValueError(f'Could not read config "{fname}"')
 
         settings = dict(config['settings'])
 
