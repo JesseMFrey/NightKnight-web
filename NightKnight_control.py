@@ -1,6 +1,7 @@
 import ast
 import configparser
 import io
+import os.path
 import serial
 import re
 
@@ -208,6 +209,10 @@ class NightKnight:
 
     def load_pattern_config(self, fname, is_night=False):
         config = configparser.ConfigParser()
+
+        if not os.path.exists(fname):
+            raise ValueError(f'File "{fname}" does not exist')
+
         #read config file
         config.read(fname)
 
