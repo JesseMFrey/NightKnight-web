@@ -790,7 +790,7 @@ class LightScheduler:
 
     def set_random_pattern(self, **kwargs):
         #set random pattern
-        pat = random.choice(self.schedule_settings['patterns'])
+        pat = random.choice([p for p in self.schedule_settings['patterns'] if p != self.current_pattern])
         self.set_config(pat, **kwargs)
 
 
