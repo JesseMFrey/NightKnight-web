@@ -1,0 +1,12 @@
+[Unit]
+Description=NightKnight LED rocket control webpage
+
+[Service]
+ExecStart=/home/nkweb/NightKnight-web/start.sh --port=8080 --serial=/dev/ttyS4
+User=nkweb
+Restart=on-failure
+Type=simple
+
+[Install]
+WantedBy=multi-user.target
+
