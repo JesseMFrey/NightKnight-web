@@ -866,6 +866,7 @@ class LightScheduler:
 
         with open(file, 'w') as configfile:
             config.write(configfile)
+        print(f'Config file "{file}" written!')
 
     def load_config(self, file='settings.cfg'):
 
